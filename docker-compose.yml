@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # Aplicação em desenvolvimento
+  api-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: proraf-api-dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - /app/.venv
+    environment:
+      - DEBUG=True
+      - DATABASE_URL=sqlite:///./proraf.db
+    env_file:
+      - .env
+    networks:
+      - proraf-network
+    profiles:
+      - development
+
+  # Aplicação em produção
+  api-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: proraf-api-prod
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=False
+      - DATABASE_URL=sqlite:///./proraf.db
+    env_file:
+      - .env.production
+    restart: unless-stopped
+    networks:
+      - proraf-network
+    profiles:
+      - production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Nginx reverse proxy (opcional para produção)
+  nginx:
+    image: nginx:alpine
+    container_name: proraf-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - api-prod
+    networks:
+      - proraf-network
+    profiles:
+      - production
+    restart: unless-stopped
+
+networks:
+  proraf-network:
+    driver: bridge
+
+volumes:
+  proraf-data:
+    driver: local
