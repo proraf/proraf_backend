@@ -31,11 +31,13 @@ def db_session():
 @pytest.fixture
 def client(db_session):
     """Cliente de teste com banco de dados mockado"""
+    from fastapi.testclient import TestClient
+
     def override_get_db():
         try:
             yield db_session
         finally:
-            db_session.close()
+            pass
     
     app.dependency_overrides[get_db] = override_get_db
     

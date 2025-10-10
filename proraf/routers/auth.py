@@ -13,10 +13,54 @@ from proraf.security import (
 )
 from proraf.config import settings
 
-router = APIRouter(prefix="/auth", tags=["Autenticação"])
+router = APIRouter(
+    prefix="/auth",
+    tags=["Autenticação"],
+    responses={
+        401: {"description": "Não autorizado"},
+        403: {"description": "API Key inválida ou ausente"},
+    }
+)
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Registrar novo usuário",
+    description="""
+    Registra um novo usuário no sistema.
+    
+    **Tipos de Pessoa:**
+    - **F**: Pessoa Física (requer CPF)
+    - **J**: Pessoa Jurídica (requer CNPJ)
+    
+    **Perfis:**
+    - **user**: Usuário padrão (valor padrão)
+    - **admin**: Administrador do sistema
+    
+    **Requer:** API Key no header `X-API-Key`
+    """,
+    responses={
+        201: {
+            "description": "Usuário criado com sucesso",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": 1,
+                        "nome": "João Silva",
+                        "email": "joao@farm.com",
+                        "tipo_pessoa": "F",
+                        "cpf": "12345678901",
+                        "tipo_perfil": "user",
+                        "created_at": "2025-01-15T10:00:00"
+                    }
+                }
+            }
+        },
+        400: {"description": "Email já cadastrado"}
+    }
+)
 async def register(
     user: UserCreate,
     db: Session = Depends(get_db),
@@ -51,7 +95,36 @@ async def register(
     return db_user
 
 
-@router.post("/login", response_model=Token)
+@router.post(
+    "/login",
+    response_model=Token,
+    summary="Fazer login",
+    description="""
+    Autentica usuário e retorna token JWT.
+    
+    **Credenciais:**
+    - **username**: Email do usuário
+    - **password**: Senha do usuário
+    
+    **Requer:** API Key no header `X-API-Key`
+    
+    **Retorna:** Token JWT que deve ser usado em requisições subsequentes
+    """,
+    responses={
+        200: {
+            "description": "Login realizado com sucesso",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                        "token_type": "bearer"
+                    }
+                }
+            }
+        },
+        401: {"description": "Credenciais inválidas"}
+    }
+)
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),

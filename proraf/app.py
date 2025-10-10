@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
 from proraf.config import settings
 from proraf.database import engine, Base
-from proraf.routers import auth, products, batches
+from proraf.routers import auth, products, batches, movements
 
 # Cria tabelas
 Base.metadata.create_all(bind=engine)
@@ -10,9 +11,18 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
-    description="API para Sistema de Rastreabilidade Agrícola",
+    description="API REST para Sistema de Rastreabilidade Agrícola ProRAF",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
+    contact={
+        "name": "ProRAF Team",
+        "email": "suporte@proraf.com",
+    },
+    license_info={
+        "name": "MIT",
+        "url": "https://opensource.org/licenses/MIT",
+    },
 )
 
 # Configuração CORS
@@ -28,6 +38,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(products.router)
 app.include_router(batches.router)
+app.include_router(movements.router)
 
 
 @app.get("/", tags=["Health"])

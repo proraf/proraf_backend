@@ -17,8 +17,7 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 60 * 24  # 24 horas
     
-    # CORS - Permitir apenas frontend específico
-    allowed_origins: list[str] = ["http://localhost:3000"]  # URL do frontend
+    allowed_origins: list[str] = ["http://localhost:3000"] 
     
     # API Key para comunicação frontend-backend
     api_key: str = "your-api-key-change-in-production"

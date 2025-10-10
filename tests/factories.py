@@ -13,7 +13,7 @@ class UserFactory(factory.Factory):
     
     nome = factory.Faker("name", locale="pt_BR")
     email = factory.Faker("email")
-    senha = factory.LazyFunction(lambda: get_password_hash("testpass123"))
+    senha = "testpass123"
     tipo_pessoa = fuzzy.FuzzyChoice(["F", "J"])
     cpf = "12345678901"
     cnpj = None

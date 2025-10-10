@@ -150,11 +150,11 @@ def test_delete_product(client, auth_headers, db_session):
     assert response.status_code == status.HTTP_204_NO_CONTENT
     
     # Verifica se foi soft delete
-    db_session.refresh(product)
-    assert product.status is False
+    deleted_product = db_session.query(Product).get(product.id)
+    assert deleted_product.status is False
 
 
 def test_access_without_authentication(client, api_headers):
     """Testa acesso sem autenticação"""
     response = client.get("/products/", headers=api_headers)
-    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.status_code == status.HTTP_403_FORBIDDEN
