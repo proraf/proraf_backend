@@ -62,9 +62,9 @@ __all__ = [
 
 
 # proraf/routers/__init__.py
-from proraf.routers import auth, products, batches
+from proraf.routers import auth, products, batches, movements, users, admin_dashboard
 
-__all__ = ["auth", "products", "batches"]
+__all__ = ["auth", "products", "batches", "movements", "users", "admin_dashboard"]
 
 
 # proraf/services/__init__.py
