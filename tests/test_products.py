@@ -11,6 +11,7 @@ def test_create_product(client, auth_headers):
             "comertial_name": "Tomate Cherry Premium",
             "description": "Tomate cereja orgânico",
             "variedade_cultivar": "Sweet 100",
+            "image": "https://example.com/images/tomate-cereja.jpg",
             "code": "TOM-001",
             "status": True
         },

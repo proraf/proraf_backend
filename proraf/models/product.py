@@ -12,7 +12,7 @@ class Product(Base):
     description = Column(Text, nullable=True)
     variedade_cultivar = Column(String(255), nullable=True)
     status = Column(Boolean, default=True)
-    image = Column(String(255), nullable=True)
+    image = Column(String(500), nullable=True)  # Increased length for longer URLs
     code = Column(String(50), unique=True, nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

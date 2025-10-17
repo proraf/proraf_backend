@@ -30,6 +30,13 @@ router = APIRouter(
     - name: Nome do produto
     - code: Código único do produto
     
+    **Campos opcionais:**
+    - comertial_name: Nome comercial do produto
+    - description: Descrição detalhada
+    - variedade_cultivar: Variedade ou cultivar
+    - status: Status ativo/inativo (padrão: true)
+    - image: URL da imagem do produto (deve começar com http://, https:// ou data:)
+    
     **Requer:** API Key + Token JWT
     """,
     responses={
@@ -40,14 +47,16 @@ router = APIRouter(
                     "example": {
                         "id": 1,
                         "name": "Tomate Cereja",
+                        "comertial_name": "Tomate Sweet Cherry",
                         "code": "TOM-001",
+                        "image": "https://example.com/images/tomate-cereja.jpg",
                         "status": True,
                         "created_at": "2025-01-15T10:00:00"
                     }
                 }
             }
         },
-        400: {"description": "Código do produto já existe"}
+        400: {"description": "Código do produto já existe ou dados inválidos"}
     }
 )
 async def create_product(

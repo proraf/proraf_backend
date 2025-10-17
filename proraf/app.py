@@ -4,7 +4,7 @@ from fastapi.openapi.utils import get_openapi
 from datetime import datetime
 from proraf.config import settings
 from proraf.database import engine, Base
-from proraf.routers import auth, products, batches, movements, users, admin_dashboard
+from proraf.routers import auth, products, batches, movements, users, admin_dashboard, user_profile
 
 # Cria tabelas
 Base.metadata.create_all(bind=engine)
@@ -38,6 +38,7 @@ app.add_middleware(
 
 # Registra routers
 app.include_router(auth.router)
+app.include_router(user_profile.router)
 app.include_router(products.router)
 app.include_router(batches.router)
 app.include_router(movements.router)
