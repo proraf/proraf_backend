@@ -21,8 +21,7 @@ app = FastAPI(
         "email": "suporte@proraf.com",
     },
     license_info={
-        "name": "MIT",
-        "url": "https://opensource.org/licenses/MIT",
+        "name": "Unipampa"
     },
 )
 
@@ -143,8 +142,7 @@ Para suporte técnico, entre em contato: suporte@proraf.com
             "email": "suporte@proraf.com",
         },
         license_info={
-            "name": "MIT License",
-            "url": "https://opensource.org/licenses/MIT",
+            "name": "Unipampa"
         },
     )
     
