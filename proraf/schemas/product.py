@@ -15,9 +15,9 @@ class ProductBase(BaseModel):
     @validator('image')
     def validate_image_url(cls, v):
         if v is not None and v.strip():
-            # Validação básica de URL
-            if not (v.startswith('http://') or v.startswith('https://') or v.startswith('data:')):
-                raise ValueError('URL da imagem deve começar com http://, https:// ou data:')
+            # Validação básica de URL - aceita URLs externas ou caminhos locais
+            if not (v.startswith('http://') or v.startswith('https://') or v.startswith('data:') or v.startswith('/')):
+                raise ValueError('URL da imagem deve começar com http://, https://, data: ou ser um caminho local (/)')
         return v
 
 
@@ -36,9 +36,9 @@ class ProductUpdate(BaseModel):
     @validator('image')
     def validate_image_url(cls, v):
         if v is not None and v.strip():
-            # Validação básica de URL
-            if not (v.startswith('http://') or v.startswith('https://') or v.startswith('data:')):
-                raise ValueError('URL da imagem deve começar com http://, https:// ou data:')
+            # Validação básica de URL - aceita URLs externas ou caminhos locais
+            if not (v.startswith('http://') or v.startswith('https://') or v.startswith('data:') or v.startswith('/')):
+                raise ValueError('URL da imagem deve começar com http://, https://, data: ou ser um caminho local (/)')
         return v
 
 
@@ -49,3 +49,8 @@ class ProductResponse(ProductBase):
     
     class Config:
         from_attributes = True
+
+
+class ProductImageUpload(BaseModel):
+    """Schema para resposta de upload de imagem"""
+    image_url: str = Field(..., description="URL da imagem carregada")

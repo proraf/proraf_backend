@@ -1,10 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from fastapi.openapi.utils import get_openapi
 from datetime import datetime
+from pathlib import Path
 from proraf.config import settings
 from proraf.database import engine, Base
-from proraf.routers import auth, products, batches, movements, users, admin_dashboard, user_profile
+from proraf.routers import auth, products, batches, movements, users, admin_dashboard, user_profile, traking
 
 # Cria tabelas
 Base.metadata.create_all(bind=engine)
@@ -35,7 +37,13 @@ app.add_middleware(
     expose_headers=["*"]
 )
 
+# Configurar arquivos estáticos
+static_dir = Path("static")
+static_dir.mkdir(exist_ok=True)
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
 # Registra routers
+app.include_router(traking.router)
 app.include_router(auth.router)
 app.include_router(user_profile.router)
 app.include_router(products.router)

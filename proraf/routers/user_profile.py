@@ -1,4 +1,6 @@
+from ast import List
 from fastapi import APIRouter, Depends, HTTPException, status
+from proraf.schemas.product import ProductResponse
 from sqlalchemy.orm import Session
 from proraf.database import get_db
 from proraf.models.user import User
@@ -146,30 +148,48 @@ async def get_user_stats(
             "unique_products": unique_products
         }
     }
-
-
 @router.get(
-    "/me/batches",
-    summary="Lotes do usuário",
+    "/me/products",
+    summary="Buscar produtos de um usuário",
     description="""
-    Retorna todos os lotes do usuário logado.
+    Retorna uma lista de produtos pertencentes ao usuário atual.
     
     **Requer:** API Key + Token JWT
     """
 )
-async def get_user_batches(
-    skip: int = 0,
-    limit: int = 100,
+async def get_user_products(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
     api_key_valid: bool = Depends(verify_api_key)
 ):
-    """Retorna lotes do usuário"""
-    batches = db.query(Batch).filter(
-        Batch.user_id == current_user.id
-    ).offset(skip).limit(limit).all()
+    """Obtém produtos do usuário atual"""
+    products = db.query(Product).filter(Product.user_id == current_user.id).all()
+    return products
+
+
+
+# @router.get(
+#     "/me/batches",
+#     summary="Lotes do usuário",
+#     description="""
+#     Retorna todos os lotes do usuário logado.
     
-    return batches
+#     **Requer:** API Key + Token JWT
+#     """
+# )
+# async def get_user_batches(
+#     skip: int = 0,
+#     limit: int = 100,
+#     db: Session = Depends(get_db),
+#     current_user: User = Depends(get_current_active_user),
+#     api_key_valid: bool = Depends(verify_api_key)
+# ):
+#     """Retorna lotes do usuário"""
+#     batches = db.query(Batch).filter(
+#         Batch.user_id == current_user.id
+#     ).offset(skip).limit(limit).all()
+    
+#     return batches
 
 
 @router.get(

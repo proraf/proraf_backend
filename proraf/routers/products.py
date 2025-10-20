@@ -1,11 +1,15 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form
+from fastapi import status as http_status
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
+from pathlib import Path
 from proraf.database import get_db
 from proraf.models.product import Product
 from proraf.models.user import User
-from proraf.schemas.product import ProductCreate, ProductUpdate, ProductResponse
+from proraf.schemas.product import ProductCreate, ProductUpdate, ProductResponse, ProductImageUpload
 from proraf.security import get_current_active_user, verify_api_key
+from proraf.services.file_service import FileService
 
 router = APIRouter(
     prefix="/products",
@@ -21,7 +25,7 @@ router = APIRouter(
 @router.post(
     "/",
     response_model=ProductResponse,
-    status_code=status.HTTP_201_CREATED,
+    status_code=http_status.HTTP_201_CREATED,
     summary="Criar produto",
     description="""
     Cria um novo produto agrícola no sistema.
@@ -70,11 +74,98 @@ async def create_product(
     db_product = db.query(Product).filter(Product.code == product.code).first()
     if db_product:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=http_status.HTTP_400_BAD_REQUEST,
             detail="Product code already exists"
         )
     
     db_product = Product(**product.model_dump())
+    db.add(db_product)
+    db.commit()
+    db.refresh(db_product)
+    
+    return db_product
+
+
+@router.post(
+    "/with-image",
+    response_model=ProductResponse,
+    status_code=http_status.HTTP_201_CREATED,
+    summary="Criar produto com imagem",
+    description="""
+    Cria um novo produto com upload de imagem em uma única requisição.
+    
+    **Campos obrigatórios:**
+    - name: Nome do produto
+    - code: Código único do produto
+    
+    **Campos opcionais:**
+    - comertial_name: Nome comercial do produto
+    - description: Descrição detalhada
+    - variedade_cultivar: Variedade ou cultivar
+    - status: Status ativo/inativo (padrão: true)
+    - image: Arquivo de imagem (JPG, JPEG, PNG, WEBP, máx 5MB)
+    
+    **Requer:** API Key + Token JWT
+    """,
+    responses={
+        201: {
+            "description": "Produto criado com sucesso",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": 1,
+                        "name": "Tomate Cereja",
+                        "comertial_name": "Tomate Sweet Cherry",
+                        "code": "TOM-001",
+                        "image": "/static/images/products/550e8400-e29b-41d4-a716-446655440000.jpg",
+                        "status": True,
+                        "created_at": "2025-01-15T10:00:00"
+                    }
+                }
+            }
+        },
+        400: {"description": "Código do produto já existe ou dados inválidos"}
+    }
+)
+async def create_product_with_image(
+    name: str = Form(..., description="Nome do produto"),
+    code: str = Form(..., description="Código único do produto"),
+    comertial_name: str = Form(None, description="Nome comercial do produto"),
+    description: str = Form(None, description="Descrição detalhada"),
+    variedade_cultivar: str = Form(None, description="Variedade ou cultivar"),
+    status: bool = Form(True, description="Status ativo/inativo"),
+    image: UploadFile = File(None, description="Arquivo de imagem"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+    api_key_valid: bool = Depends(verify_api_key)
+):
+    """Cria novo produto com upload de imagem"""
+    # Verifica se código já existe
+    db_product = db.query(Product).filter(Product.code == code).first()
+    if db_product:
+        raise HTTPException(
+            status_code=http_status.HTTP_400_BAD_REQUEST,
+            detail="Product code already exists"
+        )
+    
+    # Upload da imagem se fornecida
+    image_path = None
+    if image and image.filename:
+        image_path = await FileService.save_product_image(image)
+        image_path = f"/{image_path}"
+    
+    # Criar produto
+    product_data = {
+        "name": name,
+        "code": code,
+        "comertial_name": comertial_name,
+        "description": description,
+        "variedade_cultivar": variedade_cultivar,
+        "status": status,
+        "image": image_path
+    }
+    
+    db_product = Product(**product_data)
     db.add(db_product)
     db.commit()
     db.refresh(db_product)
@@ -114,6 +205,70 @@ async def list_products(
     products = query.offset(skip).limit(limit).all()
     return products
 
+@router.post(
+    "/upload-image",
+    response_model=ProductImageUpload,
+    status_code=http_status.HTTP_201_CREATED,
+    summary="Upload de imagem de produto",
+    description="""
+    Faz upload de uma imagem para uso em produtos.
+    
+    **Formatos aceitos:** JPG, JPEG, PNG, WEBP
+    **Tamanho máximo:** 5MB
+    **Resolução máxima:** 1920x1080 (imagens maiores serão redimensionadas)
+    
+    **Requer:** API Key + Token JWT
+    
+    **Retorna:** URL da imagem carregada para usar no campo 'image' do produto
+    """,
+    responses={
+        201: {
+            "description": "Imagem carregada com sucesso",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "image_url": "/static/images/products/550e8400-e29b-41d4-a716-446655440000.jpg"
+                    }
+                }
+            }
+        },
+        400: {"description": "Arquivo inválido ou formato não suportado"},
+        413: {"description": "Arquivo muito grande"}
+    }
+)
+async def upload_product_image(
+    file: UploadFile = File(..., description="Arquivo de imagem"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+    api_key_valid: bool = Depends(verify_api_key)
+):
+    """Upload de imagem de produto"""
+    image_path = await FileService.save_product_image(file)
+    return {"image_url": f"/{image_path}"}
+
+
+@router.get(
+    "/images/{filename}",
+    response_class=FileResponse,
+    summary="Servir imagem de produto",
+    description="""
+    Serve arquivos de imagem dos produtos.
+    
+    **Uso interno:** Este endpoint é usado automaticamente quando uma imagem é carregada.
+    """
+)
+async def serve_product_image(filename: str):
+    """Serve imagens de produtos"""
+    file_path = Path(f"static/images/products/{filename}")
+    
+    if not file_path.exists():
+        raise HTTPException(
+            status_code=http_status.HTTP_404_NOT_FOUND,
+            detail="Image not found"
+        )
+    
+    return FileResponse(file_path)
+
 
 @router.get(
     "/{product_id}",
@@ -135,7 +290,7 @@ async def get_product(
     product = db.query(Product).filter(Product.id == product_id).first()
     if not product:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=http_status.HTTP_404_NOT_FOUND,
             detail="Product not found"
         )
     return product
@@ -164,7 +319,7 @@ async def update_product(
     db_product = db.query(Product).filter(Product.id == product_id).first()
     if not db_product:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=http_status.HTTP_404_NOT_FOUND,
             detail="Product not found"
         )
     
@@ -178,14 +333,57 @@ async def update_product(
     return db_product
 
 
+@router.put(
+    "/{product_id}/image",
+    response_model=ProductResponse,
+    summary="Atualizar imagem do produto",
+    description="""
+    Atualiza apenas a imagem de um produto existente.
+    
+    A imagem anterior será substituída (se existir arquivo local).
+    
+    **Requer:** API Key + Token JWT
+    """
+)
+async def update_product_image(
+    product_id: int,
+    image: UploadFile = File(..., description="Nova imagem do produto"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+    api_key_valid: bool = Depends(verify_api_key)
+):
+    """Atualiza imagem do produto"""
+    db_product = db.query(Product).filter(Product.id == product_id).first()
+    if not db_product:
+        raise HTTPException(
+            status_code=http_status.HTTP_404_NOT_FOUND,
+            detail="Product not found"
+        )
+    
+    # Remover imagem anterior se for um arquivo local
+    if db_product.image and db_product.image.startswith('/static/'):
+        old_image_path = db_product.image.lstrip('/')
+        FileService.delete_image(old_image_path)
+    
+    # Upload da nova imagem
+    image_path = await FileService.save_product_image(image)
+    db_product.image = f"/{image_path}"
+    
+    db.commit()
+    db.refresh(db_product)
+    
+    return db_product
+
+
 @router.delete(
     "/{product_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
+    status_code=http_status.HTTP_204_NO_CONTENT,
     summary="Deletar produto",
     description="""
     Desativa um produto (soft delete).
     
     O produto não é removido do banco, apenas marcado como inativo.
+    A imagem associada não é removida para preservar histórico.
     
     **Requer:** API Key + Token JWT
     """
@@ -200,11 +398,49 @@ async def delete_product(
     db_product = db.query(Product).filter(Product.id == product_id).first()
     if not db_product:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=http_status.HTTP_404_NOT_FOUND,
             detail="Product not found"
         )
     
     db_product.status = False
+    db.commit()
+    
+    return None
+
+
+@router.delete(
+    "/{product_id}/image",
+    status_code=http_status.HTTP_204_NO_CONTENT,
+    summary="Remover imagem do produto",
+    description="""
+    Remove a imagem de um produto específico.
+    
+    O arquivo de imagem será deletado do servidor se for um arquivo local.
+    
+    **Requer:** API Key + Token JWT
+    """
+)
+async def delete_product_image(
+    product_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+    api_key_valid: bool = Depends(verify_api_key)
+):
+    """Remove imagem do produto"""
+    db_product = db.query(Product).filter(Product.id == product_id).first()
+    if not db_product:
+        raise HTTPException(
+            status_code=http_status.HTTP_404_NOT_FOUND,
+            detail="Product not found"
+        )
+    
+    # Remover arquivo de imagem se for local
+    if db_product.image and db_product.image.startswith('/static/'):
+        image_path = db_product.image.lstrip('/')
+        FileService.delete_image(image_path)
+    
+    # Limpar campo de imagem no banco
+    db_product.image = None
     db.commit()
     
     return None
