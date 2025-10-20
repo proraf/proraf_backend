@@ -168,28 +168,28 @@ async def get_user_products(
 
 
 
-# @router.get(
-#     "/me/batches",
-#     summary="Lotes do usuário",
-#     description="""
-#     Retorna todos os lotes do usuário logado.
+@router.get(
+    "/me/batches",
+    summary="Lotes do usuário",
+    description="""
+    Retorna todos os lotes do usuário logado.
     
-#     **Requer:** API Key + Token JWT
-#     """
-# )
-# async def get_user_batches(
-#     skip: int = 0,
-#     limit: int = 100,
-#     db: Session = Depends(get_db),
-#     current_user: User = Depends(get_current_active_user),
-#     api_key_valid: bool = Depends(verify_api_key)
-# ):
-#     """Retorna lotes do usuário"""
-#     batches = db.query(Batch).filter(
-#         Batch.user_id == current_user.id
-#     ).offset(skip).limit(limit).all()
+    **Requer:** API Key + Token JWT
+    """
+)
+async def get_user_batches(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+    api_key_valid: bool = Depends(verify_api_key)
+):
+    """Retorna lotes do usuário"""
+    batches = db.query(Batch).filter(
+        Batch.user_id == current_user.id
+    ).offset(skip).limit(limit).all()
     
-#     return batches
+    return batches
 
 
 @router.get(

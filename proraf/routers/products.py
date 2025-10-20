@@ -78,7 +78,11 @@ async def create_product(
             detail="Product code already exists"
         )
     
-    db_product = Product(**product.model_dump())
+    # Cria produto com user_id do usuário logado
+    product_data = product.model_dump()
+    product_data["user_id"] = current_user.id
+    
+    db_product = Product(**product_data)
     db.add(db_product)
     db.commit()
     db.refresh(db_product)
@@ -140,6 +144,27 @@ async def create_product_with_image(
     api_key_valid: bool = Depends(verify_api_key)
 ):
     """Cria novo produto com upload de imagem"""
+    
+    # Validação básica dos campos obrigatórios
+    if not name or len(name.strip()) < 3:
+        raise HTTPException(
+            status_code=http_status.HTTP_400_BAD_REQUEST,
+            detail="Nome do produto deve ter pelo menos 3 caracteres"
+        )
+    
+    if not code or len(code.strip()) < 1:
+        raise HTTPException(
+            status_code=http_status.HTTP_400_BAD_REQUEST,
+            detail="Código do produto é obrigatório"
+        )
+    
+    # Limpar e normalizar campos opcionais
+    name = name.strip()
+    code = code.strip()
+    comertial_name = comertial_name.strip() if comertial_name else None
+    description = description.strip() if description else None
+    variedade_cultivar = variedade_cultivar.strip() if variedade_cultivar else None
+    
     # Verifica se código já existe
     db_product = db.query(Product).filter(Product.code == code).first()
     if db_product:
@@ -154,7 +179,7 @@ async def create_product_with_image(
         image_path = await FileService.save_product_image(image)
         image_path = f"/{image_path}"
     
-    # Criar produto
+    # Criar produto com user_id
     product_data = {
         "name": name,
         "code": code,
@@ -162,7 +187,8 @@ async def create_product_with_image(
         "description": description,
         "variedade_cultivar": variedade_cultivar,
         "status": status,
-        "image": image_path
+        "image": image_path,
+        "user_id": current_user.id
     }
     
     db_product = Product(**product_data)
@@ -184,6 +210,8 @@ async def create_product_with_image(
     - skip: Quantidade de registros a pular (padrão: 0)
     - limit: Quantidade máxima de registros (padrão: 100, máx: 100)
     - status_filter: Filtrar por status ativo/inativo
+    - my_products_only: Se true, lista apenas produtos do usuário logado
+    - user_id: ID do usuário para filtrar produtos (apenas para admins)
     
     **Requer:** API Key + Token JWT
     """
@@ -192,18 +220,67 @@ async def list_products(
     skip: int = Query(0, ge=0, description="Número de registros a pular"),
     limit: int = Query(100, ge=1, le=100, description="Limite de registros por página"),
     status_filter: bool = Query(None, description="Filtrar por status (true=ativo, false=inativo)"),
+    my_products_only: bool = Query(False, description="Listar apenas meus produtos"),
+    user_id: int = Query(None, description="Filtrar produtos por usuário específico (apenas admins)"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
     api_key_valid: bool = Depends(verify_api_key)
 ):
-    """Lista produtos com paginação"""
+    """Lista produtos com paginação e filtros"""
     query = db.query(Product)
+    
+    # Filtro por status
+    if status_filter is not None:
+        query = query.filter(Product.status == status_filter)
+    
+    # Filtro por usuário
+    if my_products_only:
+        query = query.filter(Product.user_id == current_user.id)
+    elif user_id is not None:
+        # Apenas admins podem filtrar por outros usuários
+        if current_user.tipo_perfil != "admin":
+            raise HTTPException(
+                status_code=http_status.HTTP_403_FORBIDDEN,
+                detail="Apenas administradores podem filtrar por outros usuários"
+            )
+        query = query.filter(Product.user_id == user_id)
+    
+    products = query.offset(skip).limit(limit).all()
+    return products
+
+
+@router.get(
+    "/my-products",
+    response_model=List[ProductResponse],
+    summary="Listar meus produtos",
+    description="""
+    Lista todos os produtos criados pelo usuário logado.
+    
+    **Parâmetros de query:**
+    - skip: Quantidade de registros a pular (padrão: 0)
+    - limit: Quantidade máxima de registros (padrão: 100, máx: 100)
+    - status_filter: Filtrar por status ativo/inativo
+    
+    **Requer:** API Key + Token JWT
+    """
+)
+async def list_my_products(
+    skip: int = Query(0, ge=0, description="Número de registros a pular"),
+    limit: int = Query(100, ge=1, le=100, description="Limite de registros por página"),
+    status_filter: bool = Query(None, description="Filtrar por status (true=ativo, false=inativo)"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+    api_key_valid: bool = Depends(verify_api_key)
+):
+    """Lista produtos criados pelo usuário logado"""
+    query = db.query(Product).filter(Product.user_id == current_user.id)
     
     if status_filter is not None:
         query = query.filter(Product.status == status_filter)
     
     products = query.offset(skip).limit(limit).all()
     return products
+
 
 @router.post(
     "/upload-image",

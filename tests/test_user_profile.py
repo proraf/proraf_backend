@@ -58,7 +58,7 @@ def test_get_user_stats(client, auth_headers, db_session):
     from proraf.models.movement import Movement
     
     # Cria dados de teste
-    product = Product(name="Product", code="PROD-001")
+    product = Product(name="Product", code="PROD-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -96,8 +96,8 @@ def test_get_user_batches(client, auth_headers, db_session):
     """Testa listagem de lotes do usuário"""
     from proraf.models.product import Product
     from proraf.models.batch import Batch
-    
-    product = Product(name="Product", code="PROD-001")
+
+    product = Product(name="Product", code="PROD-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -122,8 +122,8 @@ def test_get_user_movements(client, auth_headers, db_session):
     from proraf.models.product import Product
     from proraf.models.batch import Batch
     from proraf.models.movement import Movement
-    
-    product = Product(name="Product", code="PROD-001")
+
+    product = Product(name="Product", code="PROD-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -153,8 +153,8 @@ def test_get_user_recent_activity(client, auth_headers, db_session):
     from proraf.models.product import Product
     from proraf.models.batch import Batch
     from proraf.models.movement import Movement
-    
-    product = Product(name="Product", code="PROD-001")
+
+    product = Product(name="Product", code="PROD-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -229,8 +229,8 @@ def test_pagination_user_batches(client, auth_headers, db_session):
     """Testa paginação de lotes do usuário"""
     from proraf.models.product import Product
     from proraf.models.batch import Batch
-    
-    product = Product(name="Product", code="PROD-001")
+
+    product = Product(name="Product", code="PROD-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)

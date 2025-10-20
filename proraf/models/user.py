@@ -1,5 +1,6 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, CheckConstraint
+from sqlalchemy.orm import relationship
 from proraf.database import Base
 
 
@@ -17,6 +18,9 @@ class User(Base):
     tipo_perfil = Column(String(20), default="user")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relacionamentos
+    products = relationship("Product", back_populates="user")
     
     __table_args__ = (
         CheckConstraint("tipo_pessoa IN ('F', 'J')", name="check_tipo_pessoa"),

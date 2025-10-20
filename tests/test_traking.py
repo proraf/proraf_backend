@@ -28,7 +28,8 @@ def test_track_batch_by_code(client, api_headers, db_session):
         name="Tomate Cereja",
         code="TOM-001",
         comertial_name="Tomate Sweet Cherry",
-        description="Tomate orgânico"
+        description="Tomate orgânico",
+        user_id=user.id
     )
     db_session.add(product)
     db_session.commit()
@@ -119,7 +120,7 @@ def test_track_batch_by_qrcode(client, api_headers, db_session):
     db_session.commit()
     db_session.refresh(user)
     
-    product = Product(name="Alface", code="ALF-001")
+    product = Product(name="Alface", code="ALF-001", user_id=user.id)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -185,8 +186,8 @@ def test_track_batch_with_no_movements(client, api_headers, db_session):
     db_session.add(user)
     db_session.commit()
     db_session.refresh(user)
-    
-    product = Product(name="Product", code="PROD-001")
+
+    product = Product(name="Product", code="PROD-001", user_id=user.id)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -226,8 +227,8 @@ def test_track_batch_days_calculation(client, api_headers, db_session):
     db_session.add(user)
     db_session.commit()
     db_session.refresh(user)
-    
-    product = Product(name="Product", code="PROD-002")
+
+    product = Product(name="Product", code="PROD-002", user_id=user.id)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -269,8 +270,8 @@ def test_track_batch_no_planting_date(client, api_headers, db_session):
     db_session.add(user)
     db_session.commit()
     db_session.refresh(user)
-    
-    product = Product(name="Product", code="PROD-003")
+
+    product = Product(name="Product", code="PROD-003", user_id=user.id)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -311,8 +312,8 @@ def test_track_batch_data_privacy(client, api_headers, db_session):
     db_session.add(user)
     db_session.commit()
     db_session.refresh(user)
-    
-    product = Product(name="Product", code="PROD-PRIV")
+
+    product = Product(name="Product", code="PROD-PRIV", user_id=user.id)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -367,7 +368,8 @@ def test_track_batch_complete_lifecycle(client, api_headers, db_session):
         name="Tomate Industrial",
         code="TOM-IND-001",
         comertial_name="Tomate Supreme",
-        description="Tomate para processamento industrial"
+        description="Tomate para processamento industrial",
+        user_id=user.id
     )
     db_session.add(product)
     db_session.commit()

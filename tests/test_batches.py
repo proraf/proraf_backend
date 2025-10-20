@@ -8,7 +8,7 @@ def test_create_batch(client, auth_headers, db_session):
     from proraf.models.product import Product
     
     # Cria produto primeiro
-    product = Product(name="Tomate", code="TOM-001")
+    product = Product(name="Tomate", code="TOM-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -40,7 +40,7 @@ def test_create_batch_duplicate_code(client, auth_headers, db_session):
     from proraf.models.product import Product
     from proraf.models.batch import Batch
     
-    product = Product(name="Product", code="PROD-001")
+    product = Product(name="Product", code="PROD-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -89,7 +89,7 @@ def test_list_batches(client, auth_headers, db_session):
     from proraf.models.batch import Batch
     
     # Cria produto
-    product = Product(name="Product", code="PROD-001")
+    product = Product(name="Product", code="PROD-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -117,8 +117,8 @@ def test_list_batches_with_filters(client, auth_headers, db_session):
     from proraf.models.batch import Batch
     
     # Cria produtos
-    product1 = Product(name="Product 1", code="PROD-001")
-    product2 = Product(name="Product 2", code="PROD-002")
+    product1 = Product(name="Product 1", code="PROD-001", user_id=1)
+    product2 = Product(name="Product 2", code="PROD-002", user_id=1)
     db_session.add(product1)
     db_session.add(product2)
     db_session.commit()
@@ -161,7 +161,7 @@ def test_get_batch_by_id(client, auth_headers, db_session):
     from proraf.models.product import Product
     from proraf.models.batch import Batch
     
-    product = Product(name="Product", code="PROD-001")
+    product = Product(name="Product", code="PROD-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -183,7 +183,7 @@ def test_get_batch_by_code(client, auth_headers, db_session):
     from proraf.models.product import Product
     from proraf.models.batch import Batch
     
-    product = Product(name="Product", code="PROD-001")
+    product = Product(name="Product", code="PROD-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -209,7 +209,7 @@ def test_update_batch(client, auth_headers, db_session):
     from proraf.models.product import Product
     from proraf.models.batch import Batch
     
-    product = Product(name="Product", code="PROD-001")
+    product = Product(name="Product", code="PROD-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -244,7 +244,7 @@ def test_delete_batch(client, auth_headers, db_session):
     from proraf.models.product import Product
     from proraf.models.batch import Batch
     
-    product = Product(name="Product", code="PROD-001")
+    product = Product(name="Product", code="PROD-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -296,7 +296,7 @@ def test_user_cannot_access_other_user_batch(client, api_headers, db_session):
     db_session.refresh(user2)
     
     # Cria produto e lote do user2
-    product = Product(name="Product", code="PROD-001")
+    product = Product(name="Product", code="PROD-001", user_id=user2.id)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -324,7 +324,7 @@ def test_qrcode_generation(client, auth_headers, db_session):
     """Testa geração automática de QR Code"""
     from proraf.models.product import Product
     
-    product = Product(name="Tomate", code="TOM-QR")
+    product = Product(name="Tomate", code="TOM-QR", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)

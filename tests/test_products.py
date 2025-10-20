@@ -29,15 +29,15 @@ def test_create_product_duplicate_code(client, auth_headers, db_session):
     """Testa criação de produto com código duplicado"""
     from proraf.models.product import Product
     
-    # Cria produto existente
-    product = Product(
-        name="Existing Product",
-        code="EXIST-001"
-    )
-    db_session.add(product)
-    db_session.commit()
-    
     # Tenta criar com mesmo código
+    response = client.post(
+        "/products/",
+        json={
+            "name": "New Product",
+            "code": "EXIST-001"
+        },
+        headers=auth_headers
+    )
     response = client.post(
         "/products/",
         json={
@@ -56,9 +56,9 @@ def test_list_products(client, auth_headers, db_session):
     
     # Cria produtos
     products = [
-        Product(name="Product 1", code="PROD-001"),
-        Product(name="Product 2", code="PROD-002"),
-        Product(name="Product 3", code="PROD-003", status=False)
+        Product(name="Product 1", code="PROD-001", user_id=1),
+        Product(name="Product 2", code="PROD-002", user_id=1),
+        Product(name="Product 3", code="PROD-003", status=False, user_id=1)
     ]
     for p in products:
         db_session.add(p)
@@ -76,9 +76,9 @@ def test_list_products_with_status_filter(client, auth_headers, db_session):
     from proraf.models.product import Product
     
     products = [
-        Product(name="Active 1", code="ACT-001", status=True),
-        Product(name="Active 2", code="ACT-002", status=True),
-        Product(name="Inactive", code="INACT-001", status=False)
+        Product(name="Active 1", code="ACT-001", status=True, user_id=1),
+        Product(name="Active 2", code="ACT-002", status=True, user_id=1),
+        Product(name="Inactive", code="INACT-001", status=False, user_id=1)
     ]
     for p in products:
         db_session.add(p)
@@ -98,8 +98,8 @@ def test_list_products_with_status_filter(client, auth_headers, db_session):
 def test_get_product_by_id(client, auth_headers, db_session):
     """Testa busca de produto por ID"""
     from proraf.models.product import Product
-    
-    product = Product(name="Test Product", code="TEST-001")
+
+    product = Product(name="Test Product", code="TEST-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -120,8 +120,8 @@ def test_get_nonexistent_product(client, auth_headers):
 def test_update_product(client, auth_headers, db_session):
     """Testa atualização de produto"""
     from proraf.models.product import Product
-    
-    product = Product(name="Old Name", code="PROD-001")
+
+    product = Product(name="Old Name", code="PROD-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -141,8 +141,8 @@ def test_update_product(client, auth_headers, db_session):
 def test_delete_product(client, auth_headers, db_session):
     """Testa deleção (soft delete) de produto"""
     from proraf.models.product import Product
-    
-    product = Product(name="To Delete", code="DEL-001", status=True)
+
+    product = Product(name="To Delete", code="DEL-001", status=True, user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)

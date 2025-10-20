@@ -21,6 +21,7 @@ httpx = "^0.25.2"
 bcrypt = "4.0.1"
 pillow = "^10.0.0"
 aiofiles = "^23.0.0"
+image = "^1.5.33"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.3"

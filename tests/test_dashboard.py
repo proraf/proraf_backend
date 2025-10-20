@@ -43,7 +43,7 @@ def test_dashboard_overview(client, admin_headers, db_session):
     db_session.commit()
     db_session.refresh(user)
     
-    product = Product(name="Product", code="PROD-001")
+    product = Product(name="Product", code="PROD-001", user_id=user.id)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -99,7 +99,7 @@ def test_dashboard_recent_activity(client, admin_headers, db_session):
     db_session.commit()
     db_session.refresh(user)
     
-    product = Product(name="Product 2", code="PROD-002")
+    product = Product(name="Product 2", code="PROD-002", user_id=user.id)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -150,7 +150,7 @@ def test_dashboard_production_summary(client, admin_headers, db_session):
     db_session.refresh(user)
     
     # Cria produto com múltiplos lotes
-    product = Product(name="Tomate", code="TOM-001")
+    product = Product(name="Tomate", code="TOM-001", user_id=user.id)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)

@@ -9,7 +9,7 @@ def test_create_movement(client, auth_headers, db_session):
     from proraf.models.batch import Batch
     
     # Cria produto e lote
-    product = Product(name="Tomate", code="TOM-001")
+    product = Product(name="Tomate", code="TOM-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -58,8 +58,8 @@ def test_create_movement_different_types(client, auth_headers, db_session):
     """Testa criação de movimentações de diferentes tipos"""
     from proraf.models.product import Product
     from proraf.models.batch import Batch
-    
-    product = Product(name="Product", code="PROD-001")
+
+    product = Product(name="Product", code="PROD-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -99,7 +99,7 @@ def test_list_movements(client, auth_headers, db_session):
     from proraf.models.batch import Batch
     from proraf.models.movement import Movement
     
-    product = Product(name="Product", code="PROD-001")
+    product = Product(name="Product", code="PROD-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -132,7 +132,7 @@ def test_list_movements_with_batch_filter(client, auth_headers, db_session):
     from proraf.models.batch import Batch
     from proraf.models.movement import Movement
     
-    product = Product(name="Product", code="PROD-001")
+    product = Product(name="Product", code="PROD-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -170,7 +170,7 @@ def test_list_movements_with_type_filter(client, auth_headers, db_session):
     from proraf.models.batch import Batch
     from proraf.models.movement import Movement
     
-    product = Product(name="Product", code="PROD-001")
+    product = Product(name="Product", code="PROD-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -202,8 +202,8 @@ def test_get_movement_by_id(client, auth_headers, db_session):
     from proraf.models.product import Product
     from proraf.models.batch import Batch
     from proraf.models.movement import Movement
-    
-    product = Product(name="Product", code="PROD-001")
+
+    product = Product(name="Product", code="PROD-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -235,8 +235,8 @@ def test_get_movements_by_batch(client, auth_headers, db_session):
     from proraf.models.product import Product
     from proraf.models.batch import Batch
     from proraf.models.movement import Movement
-    
-    product = Product(name="Product", code="PROD-001")
+
+    product = Product(name="Product", code="PROD-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -279,8 +279,8 @@ def test_update_movement(client, auth_headers, db_session):
     from proraf.models.product import Product
     from proraf.models.batch import Batch
     from proraf.models.movement import Movement
-    
-    product = Product(name="Product", code="PROD-001")
+
+    product = Product(name="Product", code="PROD-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -318,8 +318,8 @@ def test_delete_movement(client, auth_headers, db_session):
     from proraf.models.product import Product
     from proraf.models.batch import Batch
     from proraf.models.movement import Movement
-    
-    product = Product(name="Product", code="PROD-001")
+
+    product = Product(name="Product", code="PROD-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -378,7 +378,7 @@ def test_user_cannot_access_other_user_movement(client, api_headers, db_session)
     db_session.refresh(user2)
     
     # Cria produto, lote e movimentação do user2
-    product = Product(name="Product", code="PROD-001")
+    product = Product(name="Product", code="PROD-001", user_id=user2.id)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -418,7 +418,7 @@ def test_rastreability_flow(client, auth_headers, db_session):
     from proraf.models.batch import Batch
     
     # 1. Cria produto
-    product = Product(name="Tomate Orgânico", code="TOM-ORG-001")
+    product = Product(name="Tomate Orgânico", code="TOM-ORG-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
@@ -476,7 +476,7 @@ def test_pagination_movements(client, auth_headers, db_session):
     from proraf.models.batch import Batch
     from proraf.models.movement import Movement
     
-    product = Product(name="Product", code="PROD-001")
+    product = Product(name="Product", code="PROD-001", user_id=1)
     db_session.add(product)
     db_session.commit()
     db_session.refresh(product)
