@@ -16,6 +16,7 @@ class Batch(Base):
     talhao = Column(String(100), nullable=True)
     registro_talhao = Column(Boolean, default=False)
     producao = Column(Numeric, default=0)
+    unidadeMedida = Column(String(50), nullable=True)
     qrcode = Column(String(255), nullable=True)
     product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)

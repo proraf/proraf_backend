@@ -13,6 +13,7 @@ class BatchBase(BaseModel):
     talhao: Optional[str] = Field(None, max_length=100)
     registro_talhao: bool = False
     producao: Decimal = Field(default=0)
+    unidadeMedida: Optional[str] = Field(None, max_length=50)
     product_id: int
 
 
@@ -28,6 +29,7 @@ class BatchUpdate(BaseModel):
     talhao: Optional[str] = Field(None, max_length=100)
     registro_talhao: Optional[bool] = None
     producao: Optional[Decimal] = None
+    unidadeMedida: Optional[str] = Field(None, max_length=50)
 
 
 class BatchResponse(BatchBase):

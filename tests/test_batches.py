@@ -34,6 +34,35 @@ def test_create_batch(client, auth_headers, db_session):
     assert data["qrcode"] is not None  # QR Code gerado automaticamente
     assert "QR-" in data["qrcode"]
 
+def test_create_batch_smart_contract(client, auth_headers, db_session):
+    """Testa criação de lote com smart contract"""
+    from proraf.models.product import Product
+    
+    # Cria produto primeiro
+    product = Product(name="Alface", code="ALF-001", user_id=1)
+    db_session.add(product)
+    db_session.commit()
+    db_session.refresh(product)
+    
+    response = client.post(
+        "/batches/",
+        json={
+            "code": "LOTE-ALF-001",
+            "dt_expedition": "2025-02-20",
+            "producao": 800.75,
+            "unidadeMedida": "kg",
+            "product_id": product.id,
+            "status": True
+        },
+        headers=auth_headers
+    )
+    
+    assert response.status_code == status.HTTP_201_CREATED
+    data = response.json()
+    assert data["code"] == "LOTE-ALF-001"
+    assert data["qrcode"] is not None  # QR Code gerado automaticamente
+    assert "QR-" in data["qrcode"]
+
 
 def test_create_batch_duplicate_code(client, auth_headers, db_session):
     """Testa criação de lote com código duplicado"""
