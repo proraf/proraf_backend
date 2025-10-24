@@ -20,19 +20,33 @@ class UserBase(BaseModel):
     
     @validator('cpf')
     def validate_cpf(cls, v, values):
-        if values.get('tipo_pessoa') == 'F' and not v:
-            raise ValueError('CPF é obrigatório para pessoa física')
+        # Para usuários OAuth (Google), CPF/CNPJ não são obrigatórios
+        # Apenas validar se estiver criando usuário local (com senha)
         return v
     
     @validator('cnpj')
     def validate_cnpj(cls, v, values):
-        if values.get('tipo_pessoa') == 'J' and not v:
-            raise ValueError('CNPJ é obrigatório para pessoa jurídica')
+        # Para usuários OAuth (Google), CPF/CNPJ não são obrigatórios  
+        # Apenas validar se estiver criando usuário local (com senha)
         return v
 
 
 class UserCreate(UserBase):
     senha: str = Field(..., min_length=6)
+    
+    @validator('cpf')
+    def validate_cpf_create(cls, v, values):
+        # Para criação de usuários locais, CPF é obrigatório para PF
+        if values.get('tipo_pessoa') == 'F' and not v:
+            raise ValueError('CPF é obrigatório para pessoa física')
+        return v
+    
+    @validator('cnpj') 
+    def validate_cnpj_create(cls, v, values):
+        # Para criação de usuários locais, CNPJ é obrigatório para PJ
+        if values.get('tipo_pessoa') == 'J' and not v:
+            raise ValueError('CNPJ é obrigatório para pessoa jurídica')
+        return v
 
 
 class UserUpdate(BaseModel):
@@ -43,11 +57,22 @@ class UserUpdate(BaseModel):
 
 class UserResponse(UserBase):
     id: int
+    google_id: Optional[str] = None
+    avatar_url: Optional[str] = None
+    provider: str = "local"
     created_at: datetime
     updated_at: datetime
     
     class Config:
         from_attributes = True
+
+
+class GoogleUserCreate(BaseModel):
+    """Schema para criar usuário via Google OAuth"""
+    google_id: str
+    nome: str
+    email: EmailStr
+    avatar_url: Optional[str] = None
 
 
 class Token(BaseModel):

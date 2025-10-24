@@ -52,6 +52,10 @@ app.include_router(movements.router)
 app.include_router(users.router)
 app.include_router(admin_dashboard.router)
 
+# Router Google OAuth
+from proraf.routers import google_auth
+app.include_router(google_auth.router)
+
 
 @app.get("/", tags=["Health"], summary="Status da API", description="Verifica se a API está online e funcionando")
 async def root():
