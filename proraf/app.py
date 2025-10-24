@@ -56,6 +56,8 @@ app.include_router(admin_dashboard.router)
 from proraf.routers import google_auth
 app.include_router(google_auth.router)
 
+# Debug router temporário removido após correção
+
 
 @app.get("/", tags=["Health"], summary="Status da API", description="Verifica se a API está online e funcionando")
 async def root():

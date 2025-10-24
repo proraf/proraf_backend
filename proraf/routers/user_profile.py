@@ -7,7 +7,7 @@ from proraf.models.user import User
 from proraf.models.batch import Batch
 from proraf.models.movement import Movement
 from proraf.models.product import Product
-from proraf.schemas.user import UserResponse, UserUpdate
+from proraf.schemas.user import UserResponse, UserUpdate, UserUpdateCpfOuCnpj
 from proraf.security import get_current_active_user, verify_api_key, get_password_hash
 from sqlalchemy import func
 
@@ -62,7 +62,7 @@ async def update_current_user_profile(
 ):
     """Atualiza dados do usuário logado"""
     update_data = user_update.model_dump(exclude_unset=True)
-    
+    print(update_data)
     # Se senha foi enviada, fazer hash
     if "senha" in update_data:
         update_data["senha"] = get_password_hash(update_data["senha"])
@@ -75,6 +75,31 @@ async def update_current_user_profile(
     
     return current_user
 
+@router.put(
+    "/me/cpfouCnpj",
+    response_model=UserResponse,
+    summary="Atualizar CPF ou CNPJ do usuário logado",
+    description="""
+    Permite que o usuário atualize seu CPF ou CNPJ.
+
+    **Requer:** API Key + Token JWT
+    """
+)
+async def update_user_cpfouCnpj(
+    data: UserUpdateCpfOuCnpj,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+    api_key_valid: bool = Depends(verify_api_key)
+):
+    """Atualiza CPF ou CNPJ do usuário logado"""
+    
+    if data.tipoPessoa == 'F':
+        current_user.cpf = data.cpfouCnpj
+    else:
+        current_user.cnpj = data.cpfouCnpj
+    db.commit()
+    db.refresh(current_user)
+    return current_user
 
 @router.get(
     "/me/stats",

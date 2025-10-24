@@ -54,7 +54,11 @@ class UserUpdate(BaseModel):
     telefone: Optional[str] = Field(None, max_length=20)
     senha: Optional[str] = Field(None, min_length=6)
 
-
+class UserUpdateCpfOuCnpj(BaseModel):
+    cpfouCnpj: str = Field(..., min_length=11, max_length=18)
+    tipoPessoa: str = Field(..., pattern="^(F|J)$")
+    
+    
 class UserResponse(UserBase):
     id: int
     google_id: Optional[str] = None

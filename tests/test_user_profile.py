@@ -28,6 +28,21 @@ def test_update_current_user(client, auth_headers):
     data = response.json()
     assert data["nome"] == "Nome Atualizado"
     assert data["telefone"] == "51999999999"
+    
+def test_update_user_cpf(client, auth_headers):
+    """Testa atualização do CPF do usuário"""
+    response = client.put(
+        "/user/me/cpfouCnpj",
+        json={
+            "cpfouCnpj": "12345678901",
+            "tipoPessoa": "F"
+        },
+        headers=auth_headers
+    )
+    
+    assert response.status_code == status.HTTP_200_OK
+    data = response.json()
+    assert data["cpf"] == "12345678901"
 
 
 def test_update_user_password(client, auth_headers, api_headers, db_session):

@@ -132,15 +132,8 @@ async def verify_google_token(
         # Gerar JWT token
         access_token = google_user_service.generate_jwt_token(user)
         
-        # Criar resposta com tratamento de erro
-        try:
-            user_response = UserResponse.from_orm(user)
-        except Exception as validation_error:
-            # Se falhar na validação, tentar reparar dados
-            raise HTTPException(
-                status_code=500,
-                detail=f"Erro na validação do usuário: {str(validation_error)}"
-            )
+        # Criar resposta
+        user_response = UserResponse.from_orm(user)
         
         return {
             "access_token": access_token,

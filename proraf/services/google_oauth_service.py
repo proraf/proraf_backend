@@ -88,7 +88,7 @@ class GoogleUserService:
         new_user = User(
             nome=name or "Usuário Google",  # Nome padrão se vazio
             email=email,
-            senha=None,  # NULL para usuários OAuth
+            senha=None,  # NULL - agora permitido após migração
             tipo_pessoa="F",  # Default pessoa física
             cpf=None,  # NULL - validação flexível para OAuth
             cnpj=None,
