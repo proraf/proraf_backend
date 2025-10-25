@@ -29,6 +29,21 @@ def test_update_current_user(client, auth_headers):
     assert data["nome"] == "Nome Atualizado"
     assert data["telefone"] == "51999999999"
     
+def test_update_user_tipo(client, auth_headers):
+    """Testa atualização do tipo de pessoa do usuário"""
+    response = client.put(
+        "/user/me/",
+        json={
+            "tipo_perfil": "Blockchain"
+        },
+        headers=auth_headers
+    )
+    
+    assert response.status_code == status.HTTP_200_OK
+    data = response.json()
+    assert data["tipo_perfil"] == "Blockchain"
+    
+    
 def test_update_user_cpf(client, auth_headers):
     """Testa atualização do CPF do usuário"""
     response = client.put(

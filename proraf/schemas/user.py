@@ -53,7 +53,9 @@ class UserUpdate(BaseModel):
     nome: Optional[str] = Field(None, min_length=3, max_length=255)
     telefone: Optional[str] = Field(None, max_length=20)
     senha: Optional[str] = Field(None, min_length=6)
-
+    tipo_perfil: Optional[str] = Field(None)
+    
+    
 class UserUpdateCpfOuCnpj(BaseModel):
     cpfouCnpj: str = Field(..., min_length=11, max_length=18)
     tipoPessoa: str = Field(..., pattern="^(F|J)$")
