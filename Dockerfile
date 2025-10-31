@@ -6,11 +6,11 @@ WORKDIR /app
 RUN pip install poetry
 
 # Copia arquivos de dependências
-COPY pyproject.toml ./
+COPY pyproject.toml poetry.lock* ./
 
 # Instala apenas dependências de produção
 RUN poetry config virtualenvs.create false \
-    && poetry install --no-dev --no-root
+    && poetry install --only=main --no-root
 
 
 FROM python:3.11-slim
