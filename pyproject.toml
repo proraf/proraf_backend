@@ -25,6 +25,8 @@ image = "^1.5.33"
 google-auth = "^2.41.1"
 google-auth-oauthlib = "^1.2.2"
 google-auth-httplib2 = "^0.2.0"
+pywin32 = "^306"
+win32printing = "^0.1.3"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.3"
@@ -44,6 +46,9 @@ format = "ruff format ."
 migrate = "alembic upgrade head"
 makemigrations = "alembic revision --autogenerate -m"
 init-db = "alembic upgrade head"
+test-print = "python scripts/test_print.py"
+print-info = "python -c \"import win32print; printers = [printer[2] for printer in win32print.EnumPrinters(2)]; print('Impressoras disponíveis:'); [print(f'  - {printer}') for printer in printers]; print(f'Total: {len(printers)} impressoras')\""
+quick-test = "python -c \"from proraf.services.print_service import ProductLabelPrinter; printer = ProductLabelPrinter(); print('Testing printer...'); result = printer.print_product_label({'produto_nome': 'Teste', 'peso': '500g', 'empresa': 'Empresa Teste', 'endereco': 'Rua Teste, 123', 'cpf': '123.456.789-00', 'telefone': '(00) 1234-5678', 'validade': '31/12/2025', 'codigo_produto': 'PRD-TESTE', 'codigo_lote': 'LOT-TESTE', 'url_rastreio': 'http://proraf.unihacker.club:8000/rastreio?search=LOT-TESTE'}); print(f'Print result: {result}')\""
 
 [tool.pytest.ini_options]
 pythonpath = "."

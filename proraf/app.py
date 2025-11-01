@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 from proraf.config import settings
 from proraf.database import engine, Base
-from proraf.routers import auth, products, batches, movements, users, admin_dashboard, user_profile, traking , field_data 
+from proraf.routers import auth, products, batches, movements, users, admin_dashboard, user_profile, traking, field_data, print_labels 
 
 # Cria tabelas
 Base.metadata.create_all(bind=engine)
@@ -52,6 +52,7 @@ app.include_router(movements.router)
 app.include_router(users.router)
 app.include_router(admin_dashboard.router)
 app.include_router(field_data.router)
+app.include_router(print_labels.router)
 # Router Google OAuth
 from proraf.routers import google_auth
 app.include_router(google_auth.router)
