@@ -52,6 +52,33 @@ async def create_user(
             detail="Email already registered"
         )
     
+    # Verifica se CPF já existe (se fornecido)
+    if user.cpf:
+        existing_cpf = db.query(User).filter(User.cpf == user.cpf).first()
+        if existing_cpf:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="CPF already registered"
+            )
+    
+    # Verifica se CNPJ já existe (se fornecido)
+    if user.cnpj:
+        existing_cnpj = db.query(User).filter(User.cnpj == user.cnpj).first()
+        if existing_cnpj:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="CNPJ already registered"
+            )
+    
+    # Verifica se telefone já existe (se fornecido)
+    if user.telefone:
+        existing_telefone = db.query(User).filter(User.telefone == user.telefone).first()
+        if existing_telefone:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Phone number already registered"
+            )
+    
     # Cria usuário
     hashed_password = get_password_hash(user.senha)
     db_user = User(
@@ -190,6 +217,18 @@ async def update_user(
         )
     
     update_data = user_update.model_dump(exclude_unset=True)
+    
+    # Se telefone foi enviado, verifica se já existe para outro usuário
+    if "telefone" in update_data and update_data["telefone"]:
+        existing_telefone = db.query(User).filter(
+            User.telefone == update_data["telefone"],
+            User.id != user_id
+        ).first()
+        if existing_telefone:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Phone number already registered by another user"
+            )
     
     # Se senha foi enviada, fazer hash
     if "senha" in update_data:

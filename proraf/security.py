@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Optional
+import hashlib
+import hmac
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status, Security
@@ -92,3 +94,76 @@ async def require_admin(
             detail="Not enough permissions"
         )
     return current_user
+
+
+def generate_whatsapp_hash(telefone: str) -> str:
+    """
+    Gera hash HMAC-SHA256 para autenticação via WhatsApp
+    Usa SECRET_KEY como chave compartilhada entre as aplicações
+    
+    Args:
+        telefone: Número de telefone do usuário
+        
+    Returns:
+        Hash hexadecimal para validação
+    """
+    message = f"{telefone}:{settings.secret_key}"
+    hash_object = hmac.new(
+        settings.secret_key.encode('utf-8'),
+        telefone.encode('utf-8'),
+        hashlib.sha256
+    )
+    return hash_object.hexdigest()
+
+
+def verify_whatsapp_hash(telefone: str, provided_hash: str) -> bool:
+    """
+    Verifica se o hash fornecido é válido para o telefone
+    
+    Args:
+        telefone: Número de telefone
+        provided_hash: Hash recebido da aplicação WhatsApp
+        
+    Returns:
+        True se o hash é válido, False caso contrário
+    """
+    expected_hash = generate_whatsapp_hash(telefone)
+    return hmac.compare_digest(expected_hash, provided_hash)
+
+
+async def get_user_by_phone_with_hash(
+    telefone: str,
+    hash: str,
+    db: Session
+) -> User:
+    """
+    Obtém usuário através do telefone e valida o hash compartilhado
+    Substitui autenticação tradicional para integração WhatsApp
+    
+    Args:
+        telefone: Número de telefone do usuário
+        hash: Hash compartilhado para autenticação
+        db: Sessão do banco de dados
+        
+    Returns:
+        Objeto User se autenticação válida
+        
+    Raises:
+        HTTPException: Se telefone não existe ou hash inválido
+    """
+    # Verifica hash primeiro
+    if not verify_whatsapp_hash(telefone, hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication hash"
+        )
+    
+    # Busca usuário pelo telefone
+    user = db.query(User).filter(User.telefone == telefone).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Phone number not registered in the system"
+        )
+    
+    return user

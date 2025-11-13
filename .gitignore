@@ -19,7 +19,8 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-
+static/
+!static/.gitkeep
 # Virtual Environment
 venv/
 env/

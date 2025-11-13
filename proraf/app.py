@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 from proraf.config import settings
 from proraf.database import engine, Base
-from proraf.routers import auth, products, batches, movements, users, admin_dashboard, user_profile, traking, field_data, print_labels 
+from proraf.routers import auth, products, batches, movements, users, admin_dashboard, user_profile, traking, field_data, print_labels, whatsapp 
 
 # Cria tabelas
 Base.metadata.create_all(bind=engine)
@@ -53,6 +53,7 @@ app.include_router(users.router)
 app.include_router(admin_dashboard.router)
 app.include_router(field_data.router)
 app.include_router(print_labels.router)
+app.include_router(whatsapp.router)
 # Router Google OAuth
 from proraf.routers import google_auth
 app.include_router(google_auth.router)
@@ -230,6 +231,10 @@ Para suporte técnico, entre em contato: suporte@proraf.com
         {
             "name": "Admin - Dashboard",
             "description": "📈 Dashboard com estatísticas e visão geral do sistema. **APENAS ADMINISTRADORES**. Requer API Key + JWT + Perfil Admin."
+        },
+        {
+            "name": "WhatsApp Integration",
+            "description": "💬 Integração com API do WhatsApp. Autenticação via telefone + hash compartilhado (sem login tradicional). Permite criar produtos e verificar usuários diretamente via WhatsApp."
         }
     ]
     

@@ -3,8 +3,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, 
 from sqlalchemy.orm import Session
 from proraf.database import get_db
 from proraf.models.field_data import FieldData
-from proraf.schemas.field_data import FieldDataCreate, FieldDataResponse
+from proraf.models.user import User
+from proraf.schemas.field_data import FieldDataCreate, FieldDataResponse, FieldDataUpdate
 from proraf.schemas.pagination import PaginatedResponse
+from proraf.security import get_current_user
 from pydantic import BaseModel
 
 # Schema específico para resposta paginada de field data
@@ -16,12 +18,16 @@ router = APIRouter(prefix="/field-data", tags=["Field Data"])
 @router.post("/", response_model=FieldDataResponse, summary="Cria um novo dado de campo")
 async def create_field_data(
     field_data: FieldDataCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
-    Cria um novo registro de dado de campo.
+    Cria um novo registro de dado de campo para o usuário autenticado.
     """
-    db_field_data = FieldData(**field_data.dict())
+    db_field_data = FieldData(
+        **field_data.model_dump(),
+        user_id=current_user.id
+    )
     db.add(db_field_data)
     db.commit()
     db.refresh(db_field_data)
@@ -30,13 +36,16 @@ async def create_field_data(
 async def list_field_data(
     skip: int = Query(0, ge=0, description="Número de registros a pular"),
     limit: int = Query(10, ge=1, le=100, description="Número máximo de registros a retornar"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
-    Lista dados de campo com suporte à paginação.
+    Lista dados de campo do usuário autenticado com suporte à paginação.
     """
-    total = db.query(FieldData).count()
-    field_data_list = db.query(FieldData).offset(skip).limit(limit).all()
+    total = db.query(FieldData).filter(FieldData.user_id == current_user.id).count()
+    field_data_list = db.query(FieldData).filter(
+        FieldData.user_id == current_user.id
+    ).offset(skip).limit(limit).all()
     return FieldDataPaginatedResponse(
         total=total,
         items=field_data_list
@@ -44,24 +53,32 @@ async def list_field_data(
 @router.get("/{field_data_id}", response_model=FieldDataResponse, summary="Obtém um dado de campo por ID")
 async def get_field_data(
     field_data_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
-    Obtém um dado de campo específico pelo seu ID.
+    Obtém um dado de campo específico pelo seu ID (apenas do próprio usuário).
     """
-    db_field_data = db.query(FieldData).filter(FieldData.id == field_data_id).first()
+    db_field_data = db.query(FieldData).filter(
+        FieldData.id == field_data_id,
+        FieldData.user_id == current_user.id
+    ).first()
     if not db_field_data:
         raise HTTPException(status_code=404, detail="Dado de campo não encontrado")
     return db_field_data
 @router.delete("/{field_data_id}", status_code=204, summary="Deleta um dado de campo por ID")
 async def delete_field_data(
     field_data_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
-    Deleta um dado de campo específico pelo seu ID.
+    Deleta um dado de campo específico pelo seu ID (apenas do próprio usuário).
     """
-    db_field_data = db.query(FieldData).filter(FieldData.id == field_data_id).first()
+    db_field_data = db.query(FieldData).filter(
+        FieldData.id == field_data_id,
+        FieldData.user_id == current_user.id
+    ).first()
     if not db_field_data:
         raise HTTPException(status_code=404, detail="Dado de campo não encontrado")
     db.delete(db_field_data)
@@ -70,17 +87,22 @@ async def delete_field_data(
 @router.put("/{field_data_id}", response_model=FieldDataResponse, summary="Atualiza um dado de campo por ID")
 async def update_field_data(
     field_data_id: int,
-    field_data_update: FieldDataCreate,
-    db: Session = Depends(get_db)
+    field_data_update: FieldDataUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
-    Atualiza um dado de campo específico pelo seu ID.
+    Atualiza um dado de campo específico pelo seu ID (apenas do próprio usuário).
     """
-    db_field_data = db.query(FieldData).filter(FieldData.id == field_data_id).first()
+    db_field_data = db.query(FieldData).filter(
+        FieldData.id == field_data_id,
+        FieldData.user_id == current_user.id
+    ).first()
     if not db_field_data:
         raise HTTPException(status_code=404, detail="Dado de campo não encontrado")
     
-    for key, value in field_data_update.dict().items():
+    # Atualizar apenas os campos fornecidos (não nulos)
+    for key, value in field_data_update.model_dump(exclude_unset=True).items():
         setattr(db_field_data, key, value)
     
     db.commit()
