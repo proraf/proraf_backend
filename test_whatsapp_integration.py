@@ -11,7 +11,7 @@ import json
 from typing import Optional
 
 # Configuração - DEVE SER A MESMA SECRET_KEY DO ARQUIVO .env DA API
-SECRET_KEY = "JDIfhk25swGJBtJzSVAz72SnZgFSlhqo"
+SECRET_KEY = "6b21hrcP1ZjH8yMYD1mqLK74iEjSoDKV"
 API_BASE_URL = "http://localhost:8000"
 
 
