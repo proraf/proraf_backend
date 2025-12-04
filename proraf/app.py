@@ -1,11 +1,15 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.openapi.utils import get_openapi
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from datetime import datetime
 from pathlib import Path
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import RedirectResponse
 from proraf.config import settings
 from proraf.database import engine, Base
 from proraf.routers import auth, products, batches, movements, users, admin_dashboard, user_profile, traking, field_data, print_labels, whatsapp 
@@ -44,6 +48,42 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         status_code=422,
         content={"detail": exc.errors()}
     )
+
+
+# Middleware para preservar HTTPS e /api nos redirects de trailing slash
+class HTTPSRedirectMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        
+        # Se for um redirect (307, 308, 301, 302)
+        if 300 <= response.status_code < 400:
+            location = response.headers.get("location")
+            if location:
+                # Pega o scheme do header X-Forwarded-Proto (setado pelo Nginx)
+                scheme = request.headers.get("x-forwarded-proto", "https")
+                host = request.headers.get("host", "proraf.cloud")
+                
+                # Se o location é um path relativo (começa com /)
+                if location.startswith("/"):
+                    # Reconstrói a URL completa com HTTPS e /api
+                    # O Nginx remove /api/ antes de enviar pro backend, então precisamos adicionar de volta
+                    new_location = f"{scheme}://{host}/api{location}"
+                    response.headers["location"] = new_location
+                # Se é uma URL completa mas sem HTTPS ou sem /api
+                elif "://" in location:
+                    # Se tem http://, substitui por https://
+                    if location.startswith("http://"):
+                        location = location.replace("http://", "https://", 1)
+                    
+                    # Se não tem /api/ no path, adiciona
+                    if "/api/" not in location and f"{host}/" in location:
+                        location = location.replace(f"{host}/", f"{host}/api/", 1)
+                    
+                    response.headers["location"] = location
+        
+        return response
+
+app.add_middleware(HTTPSRedirectMiddleware)
 
 # Configuração CORS
 app.add_middleware(

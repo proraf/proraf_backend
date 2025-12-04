@@ -85,25 +85,33 @@ class GoogleUserService:
             return existing_user
         
         # Criar novo usuário Google com dados válidos
-        new_user = User(
-            nome=name or "Usuário Google",  # Nome padrão se vazio
-            email=email,
-            senha=None,  # NULL - agora permitido após migração
-            tipo_pessoa="F",  # Default pessoa física
-            cpf=None,  # NULL - validação flexível para OAuth
-            cnpj=None,
-            telefone=None,
-            google_id=google_id,
-            avatar_url=picture,
-            provider="google",
-            tipo_perfil="user"
-        )
-        
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
-        
-        return new_user
+        try:
+            new_user = User(
+                nome=name or "Usuário Google",  # Nome padrão se vazio
+                email=email,
+                senha=None,  # NULL - agora permitido após migração
+                tipo_pessoa="F",  # Default pessoa física
+                cpf=None,  # NULL - validação flexível para OAuth
+                cnpj=None,
+                telefone=None,
+                google_id=google_id,
+                avatar_url=picture,
+                provider="google",
+                tipo_perfil="user"
+            )
+            
+            db.add(new_user)
+            db.commit()
+            db.refresh(new_user)
+            
+            return new_user
+        except Exception as e:
+            db.rollback()
+            print(f"Erro ao criar usuário Google: {str(e)}")
+            print(f"Tipo do erro: {type(e).__name__}")
+            import traceback
+            traceback.print_exc()
+            raise Exception(f"Falha ao criar usuário: {str(e)}")
     
     @staticmethod
     def generate_jwt_token(user: User) -> str:

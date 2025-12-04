@@ -22,6 +22,20 @@ class Settings(BaseSettings):
     # API Key para comunicação frontend-backend
     api_key: str = "your-api-key-change-in-production"
     
+    # Google OAuth (optional)
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    google_redirect_uri: str = ""
+    
+    # CORS
+    cors_origins: str = "http://localhost:3000"
+    
+    # Environment
+    environment: str = "development"
+    
+    # Blockchain
+    blockchain_rpc_url: str = ""
+    
     # Upload de arquivos
     upload_dir: str = "static/images/products"
     max_file_size: int = 5 * 1024 * 1024  # 5MB
@@ -32,7 +46,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        case_sensitive=False
+        case_sensitive=False,
+        extra="allow"
     )
 
 

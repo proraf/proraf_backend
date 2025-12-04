@@ -126,6 +126,7 @@ async def update_user_cpfouCnpj(
     **Requer:** API Key + Token JWT
     """
 )
+
 async def get_user_stats(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -162,6 +163,11 @@ async def get_user_stats(
     unique_products = db.query(func.count(func.distinct(Batch.product_id))).filter(
         Batch.user_id == current_user.id
     ).scalar() or 0
+
+    # Todos os produtos cadastrados do usuário
+    total_products = db.query(Product).filter(
+        Product.user_id == current_user.id
+    ).count()
     
     return {
         "batches": {
@@ -180,7 +186,7 @@ async def get_user_stats(
             "total": float(total_production)
         },
         "products": {
-            "unique_products": unique_products
+            "unique_products": total_products
         }
     }
 @router.get(
