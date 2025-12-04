@@ -14,6 +14,7 @@ class User(Base):
     tipo_pessoa = Column(String(10), nullable=False)
     cpf = Column(String(14), nullable=True, unique=True, index=True)
     cnpj = Column(String(18), nullable=True, unique=True, index=True)
+    nit = Column(String(11), nullable=True, unique=True, index=True)  # NIT - Número de Inscrição do Trabalhador
     telefone = Column(String(20), nullable=True, unique=True, index=True)
     tipo_perfil = Column(String(20), default="user")
     google_id = Column(String(255), nullable=True, unique=True, index=True)
@@ -26,7 +27,7 @@ class User(Base):
     products = relationship("Product", back_populates="user")
     
     __table_args__ = (
-        CheckConstraint("tipo_pessoa IN ('F', 'J')", name="check_tipo_pessoa"),
+        CheckConstraint("tipo_pessoa IN ('F', 'J', 'N')", name="check_tipo_pessoa"),
     )
     
     def __repr__(self):

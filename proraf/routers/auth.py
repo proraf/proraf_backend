@@ -12,6 +12,9 @@ from proraf.security import (
     verify_api_key
 )
 from proraf.config import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/auth",
@@ -34,6 +37,7 @@ router = APIRouter(
     **Tipos de Pessoa:**
     - **F**: Pessoa Física (requer CPF)
     - **J**: Pessoa Jurídica (requer CNPJ)
+    - **N**: Trabalhador (requer NIT)
     
     **Perfis:**
     - **user**: Usuário padrão (valor padrão)
@@ -67,6 +71,8 @@ async def register(
     api_key_valid: bool = Depends(verify_api_key)
 ):
     """Registra novo usuário"""
+    # Log dos dados recebidos para debug
+    logger.info(f"Register request: nome={user.nome}, email={user.email}, tipo_pessoa={user.tipo_pessoa}, nit={user.nit}, cpf={user.cpf}, cnpj={user.cnpj}")
     # Verifica se email já existe
     db_user = db.query(User).filter(User.email == user.email).first()
     if db_user:
@@ -93,6 +99,15 @@ async def register(
                 detail="CNPJ already registered"
             )
     
+    # Verifica se NIT já existe (se fornecido)
+    if user.nit:
+        existing_nit = db.query(User).filter(User.nit == user.nit).first()
+        if existing_nit:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="NIT already registered"
+            )
+    
     # Verifica se telefone já existe (se fornecido)
     if user.telefone:
         existing_telefone = db.query(User).filter(User.telefone == user.telefone).first()
@@ -111,6 +126,7 @@ async def register(
         tipo_pessoa=user.tipo_pessoa,
         cpf=user.cpf,
         cnpj=user.cnpj,
+        nit=user.nit,
         telefone=user.telefone,
         tipo_perfil=user.tipo_perfil
     )

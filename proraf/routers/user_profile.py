@@ -78,9 +78,9 @@ async def update_current_user_profile(
 @router.put(
     "/me/cpfouCnpj",
     response_model=UserResponse,
-    summary="Atualizar CPF ou CNPJ do usuário logado",
+    summary="Atualizar CPF, CNPJ ou NIT do usuário logado",
     description="""
-    Permite que o usuário atualize seu CPF ou CNPJ.
+    Permite que o usuário atualize seu CPF, CNPJ ou NIT.
 
     **Requer:** API Key + Token JWT
     """
@@ -91,12 +91,22 @@ async def update_user_cpfouCnpj(
     current_user: User = Depends(get_current_active_user),
     api_key_valid: bool = Depends(verify_api_key)
 ):
-    """Atualiza CPF ou CNPJ do usuário logado"""
+    """Atualiza CPF, CNPJ ou NIT do usuário logado"""
     
     if data.tipoPessoa == 'F':
         current_user.cpf = data.cpfouCnpj
-    else:
+        current_user.cnpj = None
+        current_user.nit = None
+    elif data.tipoPessoa == 'J':
         current_user.cnpj = data.cpfouCnpj
+        current_user.cpf = None
+        current_user.nit = None
+    else:  # tipo N (NIT)
+        current_user.nit = data.cpfouCnpj
+        current_user.cpf = None
+        current_user.cnpj = None
+    
+    current_user.tipo_pessoa = data.tipoPessoa
     db.commit()
     db.refresh(current_user)
     return current_user

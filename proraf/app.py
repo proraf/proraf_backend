@@ -1,12 +1,17 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.openapi.utils import get_openapi
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from datetime import datetime
 from pathlib import Path
 from proraf.config import settings
 from proraf.database import engine, Base
 from proraf.routers import auth, products, batches, movements, users, admin_dashboard, user_profile, traking, field_data, print_labels, whatsapp 
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Cria tabelas
 Base.metadata.create_all(bind=engine)
@@ -26,6 +31,19 @@ app = FastAPI(
         "name": "Unipampa"
     },
 )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handler para logar erros de validação"""
+    body = await request.body()
+    logger.error(f"Validation error on {request.url.path}")
+    logger.error(f"Request body: {body.decode('utf-8', errors='ignore')}")
+    logger.error(f"Validation errors: {exc.errors()}")
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors()}
+    )
 
 # Configuração CORS
 app.add_middleware(

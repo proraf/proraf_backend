@@ -1,52 +1,44 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 
 class UserBase(BaseModel):
     nome: str = Field(..., min_length=3, max_length=255)
     email: EmailStr
-    tipo_pessoa: str = Field(..., pattern="^(F|J)$")
+    tipo_pessoa: str = Field(..., pattern="^(F|J|N)$")
     cpf: Optional[str] = Field(None, max_length=14)
     cnpj: Optional[str] = Field(None, max_length=18)
+    nit: Optional[str] = Field(None, max_length=11)  # NIT - Número de Inscrição do Trabalhador
     telefone: Optional[str] = Field(None, max_length=20)
     tipo_perfil: str = Field(default="user")
     
-    @validator('tipo_pessoa')
+    @field_validator('tipo_pessoa')
+    @classmethod
     def validate_tipo_pessoa(cls, v):
-        if v not in ['F', 'J']:
-            raise ValueError('tipo_pessoa deve ser F (Física) ou J (Jurídica)')
-        return v
-    
-    @validator('cpf')
-    def validate_cpf(cls, v, values):
-        # Para usuários OAuth (Google), CPF/CNPJ não são obrigatórios
-        # Apenas validar se estiver criando usuário local (com senha)
-        return v
-    
-    @validator('cnpj')
-    def validate_cnpj(cls, v, values):
-        # Para usuários OAuth (Google), CPF/CNPJ não são obrigatórios  
-        # Apenas validar se estiver criando usuário local (com senha)
+        if v not in ['F', 'J', 'N']:
+            raise ValueError('tipo_pessoa deve ser F (Física), J (Jurídica) ou N (NIT)')
         return v
 
 
 class UserCreate(UserBase):
     senha: str = Field(..., min_length=6)
     
-    @validator('cpf')
-    def validate_cpf_create(cls, v, values):
-        # Para criação de usuários locais, CPF é obrigatório para PF
-        if values.get('tipo_pessoa') == 'F' and not v:
+    @model_validator(mode='after')
+    def validate_document(self):
+        tipo_pessoa = self.tipo_pessoa
+        cpf = self.cpf
+        cnpj = self.cnpj
+        nit = self.nit
+        
+        if tipo_pessoa == 'F' and not cpf:
             raise ValueError('CPF é obrigatório para pessoa física')
-        return v
-    
-    @validator('cnpj') 
-    def validate_cnpj_create(cls, v, values):
-        # Para criação de usuários locais, CNPJ é obrigatório para PJ
-        if values.get('tipo_pessoa') == 'J' and not v:
+        if tipo_pessoa == 'J' and not cnpj:
             raise ValueError('CNPJ é obrigatório para pessoa jurídica')
-        return v
+        if tipo_pessoa == 'N' and not nit:
+            raise ValueError('NIT é obrigatório para trabalhador')
+        
+        return self
 
 
 class UserUpdate(BaseModel):
@@ -58,7 +50,7 @@ class UserUpdate(BaseModel):
     
 class UserUpdateCpfOuCnpj(BaseModel):
     cpfouCnpj: str = Field(..., min_length=11, max_length=18)
-    tipoPessoa: str = Field(..., pattern="^(F|J)$")
+    tipoPessoa: str = Field(..., pattern="^(F|J|N)$")
     
     
 class UserResponse(UserBase):
