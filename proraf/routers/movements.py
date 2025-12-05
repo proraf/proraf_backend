@@ -5,7 +5,7 @@ from proraf.database import get_db
 from proraf.models.movement import Movement
 from proraf.models.batch import Batch
 from proraf.models.user import User
-from proraf.schemas.movement import MovementCreate, MovementUpdate, MovementResponse
+from proraf.schemas.movement import MovementCreate, MovementUpdate, MovementResponse, MovementBlockchainUpdate
 from proraf.security import get_current_active_user, verify_api_key
 
 router = APIRouter(
@@ -17,6 +17,17 @@ router = APIRouter(
         404: {"description": "Movimentação não encontrada"}
     }
 )
+
+# Lista de campos blockchain que são imutáveis
+BLOCKCHAIN_FIELDS = [
+    "blockchain_updater",
+    "blockchain_token_id",
+    "blockchain_message",
+    "blockchain_buyer_name",
+    "blockchain_buyer_identification",
+    "blockchain_current_location",
+    "blockchain_update_type"
+]
 
 
 @router.post(
@@ -289,3 +300,61 @@ async def delete_movement(
     db.commit()
     
     return None
+
+
+@router.patch(
+    "/{movement_id}/blockchain",
+    response_model=MovementResponse,
+    summary="Registrar dados blockchain",
+    description="""
+    Registra dados da blockchain para uma movimentação.
+    
+    **ATENÇÃO:** Campos blockchain são IMUTÁVEIS após o primeiro preenchimento.
+    Uma vez que o blockchain_token_id seja definido, nenhum campo blockchain pode ser alterado.
+    
+    **Requer:** API Key + Token JWT
+    """
+)
+async def update_movement_blockchain(
+    movement_id: int,
+    blockchain_data: MovementBlockchainUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+    api_key_valid: bool = Depends(verify_api_key)
+):
+    """
+    Atualiza campos blockchain da movimentação.
+    ATENÇÃO: Campos blockchain são IMUTÁVEIS após o primeiro preenchimento.
+    """
+    db_movement = db.query(Movement).filter(Movement.id == movement_id).first()
+    
+    if not db_movement:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Movement not found"
+        )
+    
+    # Verifica permissão
+    if current_user.tipo_perfil != "admin" and db_movement.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to update this movement"
+        )
+    
+    # Verifica se dados blockchain já foram preenchidos (imutabilidade)
+    if db_movement.blockchain_token_id is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Blockchain data already registered and cannot be modified. Blockchain records are immutable."
+        )
+    
+    # Atualiza campos blockchain
+    update_data = blockchain_data.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        if value is not None:
+            setattr(db_movement, field, value)
+    
+    db.commit()
+    db.refresh(db_movement)
+    
+    return db_movement

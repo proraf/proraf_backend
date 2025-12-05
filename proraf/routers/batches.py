@@ -5,11 +5,24 @@ from proraf.database import get_db
 from proraf.models.batch import Batch
 from proraf.models.product import Product
 from proraf.models.user import User
-from proraf.schemas.batch import BatchCreate, BatchUpdate, BatchResponse
+from proraf.schemas.batch import BatchCreate, BatchUpdate, BatchResponse, BatchBlockchainUpdate
 from proraf.security import get_current_active_user, verify_api_key
 from proraf.services.qrcode_service import generate_qrcode
 
 router = APIRouter(prefix="/batches", tags=["Lotes"])
+
+# Lista de campos blockchain que são imutáveis
+BLOCKCHAIN_FIELDS = [
+    "blockchain_address_who",
+    "blockchain_address_to", 
+    "blockchain_product_name",
+    "blockchain_product_expedition_date",
+    "blockchain_product_type",
+    "blockchain_batch_id",
+    "blockchain_unit_of_measure",
+    "blockchain_batch_quantity",
+    "blockchain_token_id"
+]
 
 
 @router.post("/", response_model=BatchResponse, status_code=status.HTTP_201_CREATED)
@@ -183,3 +196,49 @@ async def delete_batch(
     db.commit()
     
     return None
+
+
+@router.patch("/{batch_id}/blockchain", response_model=BatchResponse)
+async def update_batch_blockchain(
+    batch_id: int,
+    blockchain_data: BatchBlockchainUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+    api_key_valid: bool = Depends(verify_api_key)
+):
+    """
+    Atualiza campos blockchain do lote.
+    ATENÇÃO: Campos blockchain são IMUTÁVEIS após o primeiro preenchimento.
+    """
+    db_batch = db.query(Batch).filter(Batch.id == batch_id).first()
+    
+    if not db_batch:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Batch not found"
+        )
+    
+    # Verifica permissão
+    if current_user.tipo_perfil != "admin" and db_batch.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to update this batch"
+        )
+    
+    # Verifica se dados blockchain já foram preenchidos (imutabilidade)
+    if db_batch.blockchain_token_id is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Blockchain data already registered and cannot be modified. Blockchain records are immutable."
+        )
+    
+    # Atualiza campos blockchain
+    update_data = blockchain_data.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        if value is not None:
+            setattr(db_batch, field, value)
+    
+    db.commit()
+    db.refresh(db_batch)
+    
+    return db_batch

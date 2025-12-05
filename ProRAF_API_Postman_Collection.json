@@ -1,0 +1,1184 @@
+{
+  "info": {
+    "_postman_id": "proraf-api-collection",
+    "name": "ProRAF API - Rastreabilidade Agrícola",
+    "description": "API para rastreabilidade de produtos agrícolas com suporte a blockchain.\n\n## Autenticação\n- **API Key**: Header `X-API-Key`\n- **JWT Token**: Header `Authorization: Bearer <token>`\n\n## Fluxo de Autenticação\n1. Registre um usuário em `/auth/register`\n2. Faça login em `/auth/login` para obter o token JWT\n3. Use o token em todas as requisições autenticadas",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "6b21hrcP1ZjH8yMYD1mqLK74iEjSoDKV",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "X-API-Key",
+        "type": "string"
+      },
+      {
+        "key": "value",
+        "value": "{{api_key}}",
+        "type": "string"
+      },
+      {
+        "key": "in",
+        "value": "header",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "🏥 Health",
+      "item": [
+        {
+          "name": "Status da API",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            },
+            "description": "Verifica se a API está online"
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Endpoint de health check para monitoramento"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔐 Autenticação",
+      "item": [
+        {
+          "name": "Registrar Usuário",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"João Silva\",\n  \"email\": \"joao@example.com\",\n  \"tipo_pessoa\": \"F\",\n  \"cpf\": \"123.456.789-00\",\n  \"telefone\": \"55999998888\",\n  \"senha\": \"senha123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Registra novo usuário.\n\n**tipo_pessoa:**\n- `F` = Pessoa Física (CPF)\n- `J` = Pessoa Jurídica (CNPJ)\n- `N` = Trabalhador (NIT)"
+          }
+        },
+        {
+          "name": "Registrar Usuário (CNPJ)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Fazenda Exemplo LTDA\",\n  \"email\": \"fazenda@example.com\",\n  \"tipo_pessoa\": \"J\",\n  \"cnpj\": \"12.345.678/0001-90\",\n  \"telefone\": \"55999997777\",\n  \"senha\": \"senha123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Registra usuário Pessoa Jurídica"
+          }
+        },
+        {
+          "name": "Registrar Usuário (NIT)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Maria Trabalhadora\",\n  \"email\": \"maria@example.com\",\n  \"tipo_pessoa\": \"N\",\n  \"nit\": \"12345678901\",\n  \"telefone\": \"55999996666\",\n  \"senha\": \"senha123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Registra usuário Trabalhador (NIT)"
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.access_token) {",
+                  "    pm.collectionVariables.set('token', jsonData.access_token);",
+                  "    console.log('Token salvo com sucesso!');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "joao@example.com",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "senha123",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Faz login e retorna token JWT.\n\n**O token é salvo automaticamente na variável `token`**"
+          }
+        },
+        {
+          "name": "Usuário Atual",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Retorna dados do usuário logado"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🌱 Produtos",
+      "item": [
+        {
+          "name": "Listar Produtos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/products/?skip=0&limit=100",
+              "host": ["{{base_url}}"],
+              "path": ["products", ""],
+              "query": [
+                {
+                  "key": "skip",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Lista todos os produtos do usuário"
+          }
+        },
+        {
+          "name": "Criar Produto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tomate Cereja\",\n  \"code\": \"TOM-001\",\n  \"comertial_name\": \"Tomate Cereja Orgânico\",\n  \"description\": \"Tomate cereja cultivado organicamente\",\n  \"variedade_cultivar\": \"Sweet Million\",\n  \"status\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/products/",
+              "host": ["{{base_url}}"],
+              "path": ["products", ""]
+            },
+            "description": "Cria um novo produto"
+          }
+        },
+        {
+          "name": "Obter Produto por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/products/1",
+              "host": ["{{base_url}}"],
+              "path": ["products", "1"]
+            },
+            "description": "Obtém produto por ID"
+          }
+        },
+        {
+          "name": "Atualizar Produto",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tomate Cereja Premium\",\n  \"description\": \"Tomate cereja orgânico premium\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/products/1",
+              "host": ["{{base_url}}"],
+              "path": ["products", "1"]
+            },
+            "description": "Atualiza um produto existente"
+          }
+        },
+        {
+          "name": "Deletar Produto",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/products/1",
+              "host": ["{{base_url}}"],
+              "path": ["products", "1"]
+            },
+            "description": "Deleta um produto (soft delete)"
+          }
+        },
+        {
+          "name": "Upload Imagem do Produto",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/products/1/image",
+              "host": ["{{base_url}}"],
+              "path": ["products", "1", "image"]
+            },
+            "description": "Faz upload de imagem para o produto"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📦 Lotes (Batches)",
+      "item": [
+        {
+          "name": "Listar Lotes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/batches/?skip=0&limit=100",
+              "host": ["{{base_url}}"],
+              "path": ["batches", ""],
+              "query": [
+                {
+                  "key": "skip",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Lista todos os lotes do usuário"
+          }
+        },
+        {
+          "name": "Criar Lote",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"LOTE-2025-001\",\n  \"product_id\": 1,\n  \"product_name\": \"Tomate Cereja\",\n  \"product_type\": \"Orgânico\",\n  \"dt_plantio\": \"2025-01-15\",\n  \"dt_colheita\": \"2025-04-20\",\n  \"dt_expedition\": \"2025-04-25\",\n  \"talhao\": \"Talhão A1\",\n  \"registro_talhao\": true,\n  \"producao\": 500.5,\n  \"unidadeMedida\": \"kg\",\n  \"status\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/batches/",
+              "host": ["{{base_url}}"],
+              "path": ["batches", ""]
+            },
+            "description": "Cria um novo lote com QR Code automático"
+          }
+        },
+        {
+          "name": "Obter Lote por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/batches/1",
+              "host": ["{{base_url}}"],
+              "path": ["batches", "1"]
+            },
+            "description": "Obtém lote por ID"
+          }
+        },
+        {
+          "name": "Obter Lote por Código",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/batches/code/LOTE-2025-001",
+              "host": ["{{base_url}}"],
+              "path": ["batches", "code", "LOTE-2025-001"]
+            },
+            "description": "Obtém lote pelo código"
+          }
+        },
+        {
+          "name": "Atualizar Lote",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"producao\": 550.0,\n  \"dt_colheita\": \"2025-04-22\",\n  \"product_name\": \"Tomate Cereja Premium\",\n  \"product_type\": \"Orgânico Premium\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/batches/1",
+              "host": ["{{base_url}}"],
+              "path": ["batches", "1"]
+            },
+            "description": "Atualiza dados do lote (campos editáveis)"
+          }
+        },
+        {
+          "name": "⛓️ Registrar Dados Blockchain do Lote",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"blockchain_address_who\": \"0x1234567890abcdef1234567890abcdef12345678\",\n  \"blockchain_address_to\": \"0xabcdef1234567890abcdef1234567890abcdef12\",\n  \"blockchain_product_name\": \"Tomate Cereja\",\n  \"blockchain_product_expedition_date\": \"2025-04-25\",\n  \"blockchain_product_type\": \"Orgânico\",\n  \"blockchain_batch_id\": \"LOTE-2025-001\",\n  \"blockchain_unit_of_measure\": \"kg\",\n  \"blockchain_batch_quantity\": 500.5,\n  \"blockchain_token_id\": 12345\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/batches/1/blockchain",
+              "host": ["{{base_url}}"],
+              "path": ["batches", "1", "blockchain"]
+            },
+            "description": "**⚠️ ATENÇÃO: Dados blockchain são IMUTÁVEIS após o primeiro preenchimento!**\n\nRegistra dados da blockchain para o lote. Uma vez preenchido, não pode ser alterado."
+          }
+        },
+        {
+          "name": "Deletar Lote",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/batches/1",
+              "host": ["{{base_url}}"],
+              "path": ["batches", "1"]
+            },
+            "description": "Deleta um lote (soft delete)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Movimentações",
+      "item": [
+        {
+          "name": "Listar Movimentações",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/movements/?skip=0&limit=100",
+              "host": ["{{base_url}}"],
+              "path": ["movements", ""],
+              "query": [
+                {
+                  "key": "skip",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Lista todas as movimentações"
+          }
+        },
+        {
+          "name": "Criar Movimentação",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo_movimentacao\": \"expedição\",\n  \"quantidade\": 100.5,\n  \"batch_id\": 1,\n  \"buyer_name\": \"Supermercado ABC\",\n  \"buyer_identification\": \"12.345.678/0001-90\",\n  \"current_location\": \"São Paulo, SP\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/movements/",
+              "host": ["{{base_url}}"],
+              "path": ["movements", ""]
+            },
+            "description": "Cria nova movimentação.\n\n**Tipos comuns:**\n- plantio\n- colheita\n- expedição\n- venda\n- transferência\n- descarte"
+          }
+        },
+        {
+          "name": "Obter Movimentação por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/movements/1",
+              "host": ["{{base_url}}"],
+              "path": ["movements", "1"]
+            },
+            "description": "Obtém movimentação por ID"
+          }
+        },
+        {
+          "name": "Listar Movimentações por Lote",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/movements/batch/1",
+              "host": ["{{base_url}}"],
+              "path": ["movements", "batch", "1"]
+            },
+            "description": "Lista todas as movimentações de um lote específico"
+          }
+        },
+        {
+          "name": "Atualizar Movimentação",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantidade\": 120.0,\n  \"buyer_name\": \"Supermercado XYZ\",\n  \"current_location\": \"Rio de Janeiro, RJ\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/movements/1",
+              "host": ["{{base_url}}"],
+              "path": ["movements", "1"]
+            },
+            "description": "Atualiza movimentação (campos editáveis)"
+          }
+        },
+        {
+          "name": "⛓️ Registrar Dados Blockchain da Movimentação",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"blockchain_updater\": \"0x1234567890abcdef1234567890abcdef12345678\",\n  \"blockchain_token_id\": 12345,\n  \"blockchain_message\": \"Expedição realizada com sucesso\",\n  \"blockchain_buyer_name\": \"Supermercado ABC\",\n  \"blockchain_buyer_identification\": \"12.345.678/0001-90\",\n  \"blockchain_current_location\": \"São Paulo, SP\",\n  \"blockchain_update_type\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/movements/1/blockchain",
+              "host": ["{{base_url}}"],
+              "path": ["movements", "1", "blockchain"]
+            },
+            "description": "**⚠️ ATENÇÃO: Dados blockchain são IMUTÁVEIS após o primeiro preenchimento!**\n\nRegistra dados da blockchain para a movimentação. Uma vez preenchido, não pode ser alterado."
+          }
+        },
+        {
+          "name": "Deletar Movimentação",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/movements/1",
+              "host": ["{{base_url}}"],
+              "path": ["movements", "1"]
+            },
+            "description": "Deleta uma movimentação (hard delete)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🗺️ Dados de Campo (Field Data)",
+      "item": [
+        {
+          "name": "Listar Dados de Campo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/field-data/?skip=0&limit=100",
+              "host": ["{{base_url}}"],
+              "path": ["field-data", ""],
+              "query": [
+                {
+                  "key": "skip",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Lista todos os dados de campo do usuário"
+          }
+        },
+        {
+          "name": "Criar Dados de Campo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": \"-29.123456\",\n  \"longitude\": \"-53.123456\",\n  \"mapa\": \"url_do_mapa.jpg\",\n  \"imagem_aerea\": \"url_imagem_aerea.jpg\",\n  \"imagem_perfil\": \"url_imagem_perfil.jpg\",\n  \"imagem_fundo\": \"url_imagem_fundo.jpg\",\n  \"observacoes\": \"Área de plantio de tomates\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/field-data/",
+              "host": ["{{base_url}}"],
+              "path": ["field-data", ""]
+            },
+            "description": "Cria novos dados de campo"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🔍 Rastreabilidade (Público)",
+      "item": [
+        {
+          "name": "Rastrear por Código do Lote",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/tracking/LOTE-2025-001",
+              "host": ["{{base_url}}"],
+              "path": ["tracking", "LOTE-2025-001"]
+            },
+            "description": "Endpoint público para rastreabilidade.\nRetorna informações completas do lote, produto e movimentações."
+          }
+        }
+      ]
+    },
+    {
+      "name": "👥 Admin - Usuários",
+      "item": [
+        {
+          "name": "Listar Todos os Usuários",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/users/?skip=0&limit=100",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "users", ""],
+              "query": [
+                {
+                  "key": "skip",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "**APENAS ADMIN**\n\nLista todos os usuários do sistema"
+          }
+        },
+        {
+          "name": "Obter Usuário por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/users/1",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "users", "1"]
+            },
+            "description": "**APENAS ADMIN**\n\nObtém usuário por ID"
+          }
+        },
+        {
+          "name": "Atualizar Usuário",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"João Silva Atualizado\",\n  \"tipo_perfil\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/admin/users/1",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "users", "1"]
+            },
+            "description": "**APENAS ADMIN**\n\nAtualiza dados de um usuário"
+          }
+        },
+        {
+          "name": "Deletar Usuário",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/users/1",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "users", "1"]
+            },
+            "description": "**APENAS ADMIN**\n\nDeleta um usuário"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📈 Admin - Dashboard",
+      "item": [
+        {
+          "name": "Dashboard Estatísticas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/dashboard/",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "dashboard", ""]
+            },
+            "description": "**APENAS ADMIN**\n\nRetorna estatísticas gerais do sistema"
+          }
+        }
+      ]
+    },
+    {
+      "name": "💬 WhatsApp Integration",
+      "item": [
+        {
+          "name": "[DEV] Gerar Hash para Telefone",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/whatsapp/generate-hash/55999998888",
+              "host": ["{{base_url}}"],
+              "path": ["whatsapp", "generate-hash", "55999998888"]
+            },
+            "description": "**ROTA DE DESENVOLVIMENTO**\n\nGera hash de autenticação para um telefone"
+          }
+        },
+        {
+          "name": "Verificar Telefone",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"telefone\": \"55999998888\",\n  \"hash\": \"seu_hash_aqui\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/whatsapp/verify-phone",
+              "host": ["{{base_url}}"],
+              "path": ["whatsapp", "verify-phone"]
+            },
+            "description": "Verifica se telefone está cadastrado"
+          }
+        },
+        {
+          "name": "Listar Produtos via WhatsApp",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"telefone\": \"55999998888\",\n  \"hash\": \"seu_hash_aqui\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/whatsapp/list-products",
+              "host": ["{{base_url}}"],
+              "path": ["whatsapp", "list-products"]
+            },
+            "description": "Lista produtos do usuário via WhatsApp"
+          }
+        },
+        {
+          "name": "Criar Produto via WhatsApp",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"telefone\": \"55999998888\",\n  \"hash\": \"seu_hash_aqui\",\n  \"name\": \"Laranja\",\n  \"description\": \"Laranja orgânica\",\n  \"variedade_cultivar\": \"Pera Rio\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/whatsapp/create-product",
+              "host": ["{{base_url}}"],
+              "path": ["whatsapp", "create-product"]
+            },
+            "description": "Cria produto via WhatsApp"
+          }
+        },
+        {
+          "name": "Criar Lote via WhatsApp",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"telefone\": \"55999998888\",\n  \"hash\": \"seu_hash_aqui\",\n  \"product_id\": 1,\n  \"talhao\": \"A1\",\n  \"dt_plantio\": \"2025-01-15\",\n  \"dt_colheita\": \"2025-04-20\",\n  \"producao\": 500,\n  \"unidadeMedida\": \"kg\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/whatsapp/create-batch",
+              "host": ["{{base_url}}"],
+              "path": ["whatsapp", "create-batch"]
+            },
+            "description": "Cria lote via WhatsApp"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🖨️ Impressão",
+      "item": [
+        {
+          "name": "Imprimir Etiqueta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"batch_code\": \"LOTE-2025-001\",\n  \"printer_name\": \"ZDesigner ZT230-200dpi ZPL\",\n  \"peso\": \"500g\",\n  \"endereco\": \"Rua das Flores, 123\",\n  \"telefone\": \"(55) 99999-8888\",\n  \"validade_dias\": 30\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/print/label",
+              "host": ["{{base_url}}"],
+              "path": ["print", "label"]
+            },
+            "description": "Imprime etiqueta do lote"
+          }
+        }
+      ]
+    }
+  ]
+}

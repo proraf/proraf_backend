@@ -1,5 +1,5 @@
 from datetime import datetime, date
-from sqlalchemy import Column, Integer, String, Date, Boolean, Numeric, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Date, Boolean, Numeric, DateTime, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from proraf.database import Base
 
@@ -22,6 +22,21 @@ class Batch(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Campos editáveis - cópia histórica do produto no momento da criação do lote
+    product_name = Column(String(255), nullable=True)
+    product_type = Column(String(255), nullable=True)
+    
+    # Campos blockchain - imutáveis após preenchimento
+    blockchain_address_who = Column(String(255), nullable=True)
+    blockchain_address_to = Column(String(255), nullable=True)
+    blockchain_product_name = Column(String(255), nullable=True)
+    blockchain_product_expedition_date = Column(String(100), nullable=True)
+    blockchain_product_type = Column(String(255), nullable=True)
+    blockchain_batch_id = Column(String(255), nullable=True)
+    blockchain_unit_of_measure = Column(String(100), nullable=True)
+    blockchain_batch_quantity = Column(Float, nullable=True)
+    blockchain_token_id = Column(Integer, nullable=True)
     
     # Relacionamentos
     product = relationship("Product", backref="batches")
