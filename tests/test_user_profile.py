@@ -32,7 +32,7 @@ def test_update_current_user(client, auth_headers):
 def test_update_user_tipo(client, auth_headers):
     """Testa atualização do tipo de pessoa do usuário"""
     response = client.put(
-        "/user/me/",
+        "/user/me",
         json={
             "tipo_perfil": "Blockchain"
         },

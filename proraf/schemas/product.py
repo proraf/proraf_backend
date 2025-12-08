@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, Field, HttpUrl, validator
+from pydantic import BaseModel, Field, HttpUrl, field_validator, ConfigDict
 
 
 class ProductBase(BaseModel):
@@ -12,13 +12,15 @@ class ProductBase(BaseModel):
     image: Optional[str] = Field(None, max_length=500, description="URL da imagem do produto")
     code: str = Field(..., min_length=1, max_length=50, description="Código único do produto")
     
-    @validator('comertial_name', 'description', 'variedade_cultivar')
+    @field_validator('comertial_name', 'description', 'variedade_cultivar')
+    @classmethod
     def empty_str_to_none(cls, v):
         if v is not None and isinstance(v, str) and not v.strip():
             return None
         return v
     
-    @validator('image')
+    @field_validator('image')
+    @classmethod
     def validate_image_url(cls, v):
         if v is not None and v.strip():
             # Validação básica de URL - aceita URLs externas ou caminhos locais
@@ -39,13 +41,15 @@ class ProductUpdate(BaseModel):
     status: Optional[bool] = Field(None, description="Status ativo/inativo do produto")
     image: Optional[str] = Field(None, max_length=500, description="URL da imagem do produto")
     
-    @validator('comertial_name', 'description', 'variedade_cultivar')
+    @field_validator('comertial_name', 'description', 'variedade_cultivar')
+    @classmethod
     def empty_str_to_none(cls, v):
         if v is not None and isinstance(v, str) and not v.strip():
             return None
         return v
     
-    @validator('image')
+    @field_validator('image')
+    @classmethod
     def validate_image_url(cls, v):
         if v is not None and v.strip():
             # Validação básica de URL - aceita URLs externas ou caminhos locais
@@ -60,8 +64,7 @@ class ProductResponse(ProductBase):
     created_at: datetime
     updated_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserInfo(BaseModel):
@@ -75,8 +78,7 @@ class ProductWithUserResponse(ProductResponse):
     """Produto com informações do usuário criador"""
     user: UserInfo
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ProductImageUpload(BaseModel):

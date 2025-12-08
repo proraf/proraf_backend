@@ -467,7 +467,7 @@ def test_pagination_admin_users(client, admin_headers, db_session):
             email=f"user{i}@test.com",
             senha=get_password_hash("pass"),
             tipo_pessoa="F",
-            cpf=f"{i:011d}"
+            cpf=f"{i+100:011d}"
         )
         db_session.add(user)
     db_session.commit()
