@@ -1,7 +1,7 @@
 """add_blockchain_fields_to_batch_and_movement
 
 Revision ID: 0d5696186205
-Revises: 454a825713d0
+Revises: 5a9bb9d46b99
 Create Date: 2025-12-04 19:26:24.824678
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '0d5696186205'
-down_revision: Union[str, Sequence[str], None] = '454a825713d0'
+down_revision: Union[str, Sequence[str], None] = '5a9bb9d46b99'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

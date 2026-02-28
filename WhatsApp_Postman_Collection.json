@@ -1,0 +1,292 @@
+{
+  "info": {
+    "_postman_id": "f7b62f69-52ff-4e85-9014-4d10d1f0f6c4",
+    "name": "ProRAF - WhatsApp Routes",
+    "description": "Coleção Postman apenas para rotas /whatsapp da ProRAF API.\n\nBase URL configurada para produção: https://proraf.cloud/api\n\nFluxo recomendado:\n1) GET /whatsapp/list-hash\n2) GET /whatsapp/phones?hash=...\n3) GET /whatsapp/generate-hash/{telefone}\n4) Usar o hash gerado nos endpoints POST/PUT.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "WhatsApp - DEV",
+      "item": [
+        {
+          "name": "Gerar hash para listar telefones",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/whatsapp/list-hash",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "whatsapp",
+                "list-hash"
+              ]
+            },
+            "description": "Rota auxiliar de desenvolvimento para obter hash do identificador PHONE_LIST."
+          },
+          "response": []
+        },
+        {
+          "name": "Gerar hash por telefone",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/whatsapp/generate-hash/{{telefone}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "whatsapp",
+                "generate-hash",
+                "{{telefone}}"
+              ]
+            },
+            "description": "Rota auxiliar de desenvolvimento para gerar hash HMAC de um telefone."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "WhatsApp - Produção",
+      "item": [
+        {
+          "name": "Listar telefones cadastrados",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/whatsapp/phones?hash={{phone_list_hash}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "whatsapp",
+                "phones"
+              ],
+              "query": [
+                {
+                  "key": "hash",
+                  "value": "{{phone_list_hash}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verificar telefone",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"telefone\": \"{{telefone}}\",\n  \"hash\": \"{{hash}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/whatsapp/verify-phone",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "whatsapp",
+                "verify-phone"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar produtos do usuário",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"telefone\": \"{{telefone}}\",\n  \"hash\": \"{{hash}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/whatsapp/list-products",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "whatsapp",
+                "list-products"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar produto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"telefone\": \"{{telefone}}\",\n  \"hash\": \"{{hash}}\",\n  \"name\": \"Laranja\",\n  \"description\": \"Laranja orgânica\",\n  \"variedade_cultivar\": \"Pera Rio\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/whatsapp/create-product",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "whatsapp",
+                "create-product"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Editar produto",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"telefone\": \"{{telefone}}\",\n  \"hash\": \"{{hash}}\",\n  \"product_id\": {{product_id}},\n  \"description\": \"Descrição atualizada via WhatsApp\",\n  \"variedade_cultivar\": \"Valência\",\n  \"status\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/whatsapp/update-product",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "whatsapp",
+                "update-product"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar lote",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"telefone\": \"{{telefone}}\",\n  \"hash\": \"{{hash}}\",\n  \"product_id\": {{product_id}},\n  \"talhao\": \"A1\",\n  \"dt_plantio\": \"2026-01-15\",\n  \"dt_colheita\": \"2026-04-20\",\n  \"producao\": 500,\n  \"unidadeMedida\": \"kg\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/whatsapp/create-batch",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "whatsapp",
+                "create-batch"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://proraf.cloud/api"
+    },
+    {
+      "key": "api_key",
+      "value": ""
+    },
+    {
+      "key": "telefone",
+      "value": "55996852212"
+    },
+    {
+      "key": "hash",
+      "value": ""
+    },
+    {
+      "key": "phone_list_hash",
+      "value": ""
+    },
+    {
+      "key": "product_id",
+      "value": "1"
+    }
+  ]
+}

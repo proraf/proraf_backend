@@ -1,5 +1,5 @@
-from ast import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from starlette.datastructures import UploadFile
 from proraf.schemas.product import ProductResponse
 from sqlalchemy.orm import Session
 from proraf.database import get_db
@@ -10,6 +10,7 @@ from proraf.models.product import Product
 from proraf.schemas.user import UserResponse, UserUpdate, UserUpdateCpfOuCnpj
 from proraf.security import get_current_active_user, verify_api_key, get_password_hash
 from sqlalchemy import func
+from proraf.services.file_service import FileService
 
 router = APIRouter(
     prefix="/user",
@@ -55,14 +56,43 @@ async def get_current_user_profile(
     """
 )
 async def update_current_user_profile(
-    user_update: UserUpdate,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
     api_key_valid: bool = Depends(verify_api_key)
 ):
     """Atualiza dados do usuário logado"""
-    update_data = user_update.model_dump(exclude_unset=True)
-    print(update_data)
+    content_type = request.headers.get("content-type", "")
+    profile_image = None
+
+    if "multipart/form-data" in content_type:
+        form = await request.form()
+        form_data = {
+            "nome": form.get("nome"),
+            "telefone": form.get("telefone"),
+            "senha": form.get("senha"),
+            "tipo_perfil": form.get("tipo_perfil"),
+        }
+        parsed_data = {k: v for k, v in form_data.items() if v not in (None, "")}
+        user_update = UserUpdate(**parsed_data)
+        update_data = user_update.model_dump(exclude_unset=True)
+
+        uploaded_file = form.get("profile_image")
+        if isinstance(uploaded_file, UploadFile) and uploaded_file.filename:
+            profile_image = uploaded_file
+    else:
+        body = await request.json()
+        user_update = UserUpdate(**body)
+        update_data = user_update.model_dump(exclude_unset=True)
+
+    # Se uma nova imagem de perfil foi enviada, salva e remove a antiga (se necessário)
+    if profile_image:
+        old_image = current_user.avatar_url
+        new_image_path = await FileService.save_user_image(profile_image)
+        update_data["avatar_url"] = new_image_path
+        if old_image and old_image != FileService.DEFAULT_USER_AVATAR:
+            FileService.delete_image(old_image)
+
     # Se senha foi enviada, fazer hash
     if "senha" in update_data:
         update_data["senha"] = get_password_hash(update_data["senha"])
@@ -72,6 +102,11 @@ async def update_current_user_profile(
     
     db.commit()
     db.refresh(current_user)
+
+    if not current_user.avatar_url:
+        current_user.avatar_url = FileService.DEFAULT_USER_AVATAR
+        db.commit()
+        db.refresh(current_user)
     
     return current_user
 

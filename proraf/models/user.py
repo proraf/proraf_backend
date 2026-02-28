@@ -4,6 +4,9 @@ from sqlalchemy.orm import relationship
 from proraf.database import Base
 
 
+DEFAULT_USER_AVATAR = "static/images/users/icone.png"
+
+
 class User(Base):
     __tablename__ = "users"
     
@@ -18,7 +21,7 @@ class User(Base):
     telefone = Column(String(20), nullable=True, unique=True, index=True)
     tipo_perfil = Column(String(20), default="user")
     google_id = Column(String(255), nullable=True, unique=True, index=True)
-    avatar_url = Column(String(500), nullable=True)
+    avatar_url = Column(String(500), nullable=False, default=DEFAULT_USER_AVATAR)
     provider = Column(String(20), default="local")  # local, google
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

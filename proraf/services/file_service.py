@@ -11,6 +11,8 @@ class FileService:
     """Serviço para gerenciamento de arquivos"""
     
     UPLOAD_DIR = "static/images/products"
+    USER_UPLOAD_DIR = "static/images/users"
+    DEFAULT_USER_AVATAR = "static/images/users/icone.png"
     MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
     ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
     MAX_IMAGE_SIZE = (1920, 1080)  # Resolução máxima
@@ -88,6 +90,33 @@ class FileService:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Error saving file: {str(e)}"
             )
+
+    @classmethod
+    async def save_user_image(cls, file: UploadFile) -> str:
+        """
+        Salva imagem de perfil de usuário e retorna o caminho relativo.
+        """
+        cls._validate_file(file)
+
+        filename = cls._generate_filename(file.filename)
+        upload_path = Path(cls.USER_UPLOAD_DIR)
+        upload_path.mkdir(parents=True, exist_ok=True)
+        file_path = upload_path / filename
+
+        try:
+            async with aiofiles.open(file_path, 'wb') as f:
+                content = await file.read()
+                await f.write(content)
+
+            await cls._process_image(file_path)
+            return f"{cls.USER_UPLOAD_DIR}/{filename}"
+        except Exception as e:
+            if file_path.exists():
+                file_path.unlink()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error saving file: {str(e)}"
+            )
     
     @classmethod
     async def _process_image(cls, file_path: Path) -> None:
@@ -115,7 +144,11 @@ class FileService:
     @classmethod
     def delete_image(cls, image_path: str) -> None:
         """Remove uma imagem do sistema de arquivos"""
-        if not image_path or not image_path.startswith(cls.UPLOAD_DIR):
+        allowed_prefixes = (cls.UPLOAD_DIR, cls.USER_UPLOAD_DIR)
+        if not image_path or not image_path.startswith(allowed_prefixes):
+            return
+
+        if image_path == cls.DEFAULT_USER_AVATAR:
             return
         
         try:

@@ -2,6 +2,13 @@ import pytest
 from fastapi import status
 
 
+ONE_PIXEL_PNG = (
+    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+    b"\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDAT\x08\x99c``\x00\x00"
+    b"\x00\x04\x00\x01\x95\x1c\x0c\x02\x00\x00\x00\x00IEND\xaeB`\x82"
+)
+
+
 def test_get_current_user(client, auth_headers, db_session):
     """Testa obtenção de dados do usuário logado"""
     response = client.get("/user/me", headers=auth_headers)
@@ -10,6 +17,7 @@ def test_get_current_user(client, auth_headers, db_session):
     data = response.json()
     assert data["email"] == "test@example.com"
     assert data["nome"] == "Test User"
+    assert data["avatar_url"] == "static/images/users/icone.png"
     assert "senha" not in data
 
 
@@ -28,6 +36,28 @@ def test_update_current_user(client, auth_headers):
     data = response.json()
     assert data["nome"] == "Nome Atualizado"
     assert data["telefone"] == "51999999999"
+
+
+def test_update_current_user_with_profile_image(client, auth_headers):
+    """Testa atualização de perfil com upload opcional de imagem"""
+    response = client.put(
+        "/user/me",
+        data={
+            "nome": "Usuário com Foto",
+            "telefone": "51988887777"
+        },
+        files={
+            "profile_image": ("avatar.png", ONE_PIXEL_PNG, "image/png")
+        },
+        headers=auth_headers
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    data = response.json()
+    assert data["nome"] == "Usuário com Foto"
+    assert data["telefone"] == "51988887777"
+    assert data["avatar_url"].startswith("static/images/users/")
+    assert data["avatar_url"] != "static/images/users/icone.png"
     
 def test_update_user_tipo(client, auth_headers):
     """Testa atualização do tipo de pessoa do usuário"""

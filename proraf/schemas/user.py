@@ -46,6 +46,7 @@ class UserUpdate(BaseModel):
     telefone: Optional[str] = Field(None, max_length=20)
     senha: Optional[str] = Field(None, min_length=6)
     tipo_perfil: Optional[str] = Field(None)
+    avatar_url: Optional[str] = Field(None, max_length=500)
     
     
 class UserUpdateCpfOuCnpj(BaseModel):

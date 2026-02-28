@@ -12,7 +12,7 @@ from starlette.requests import Request
 from starlette.responses import RedirectResponse
 from proraf.config import settings
 from proraf.database import engine, Base
-from proraf.routers import auth, products, batches, movements, users, admin_dashboard, user_profile, traking, field_data, print_labels, whatsapp 
+from proraf.routers import auth, products, batches, movements, users, admin_dashboard, user_profile, traking, field_data, print_labels, whatsapp, public
 import logging
 
 logger = logging.getLogger(__name__)
@@ -102,6 +102,7 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # Registra routers
 app.include_router(traking.router)
+app.include_router(public.router)
 app.include_router(auth.router)
 app.include_router(user_profile.router)
 app.include_router(products.router)

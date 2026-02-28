@@ -12,7 +12,7 @@ from typing import Optional
 
 # Configuração - DEVE SER A MESMA SECRET_KEY DO ARQUIVO .env DA API
 SECRET_KEY = "6b21hrcP1ZjH8yMYD1mqLK74iEjSoDKV"
-API_BASE_URL = "http://localhost:8000"
+API_BASE_URL = "https://proraf.cloud/api"
 
 
 def gerar_hash(telefone: str) -> str:
@@ -235,7 +235,7 @@ if __name__ == "__main__":
             print("⚠️ API respondeu mas com status inesperado")
     except Exception as e:
         print(f"❌ Não foi possível conectar à API: {e}")
-        print("\nCertifique-se de que a API está rodando em http://localhost:8000")
+        print("\nCertifique-se de que a API está rodando em https://proraf.cloud/api")
         exit(1)
     
     menu_principal()
