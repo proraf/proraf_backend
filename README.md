@@ -8,7 +8,7 @@ API REST desenvolvida em Python/FastAPI para gerenciar a rastreabilidade de prod
 - **FastAPI** - Framework web moderno e rápido
 - **SQLAlchemy** - ORM para mapeamento objeto-relacional
 - **Alembic** - Migrations de banco de dados
-- **SQLite** - Banco de dados
+- **PostgreSQL** - Banco de dados
 - **Poetry** - Gerenciamento de dependências
 - **PyTest** - Framework de testes
 - **Factory Boy** - Geração de dados para testes

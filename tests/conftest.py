@@ -6,12 +6,12 @@ from proraf.app import app
 from proraf.database import Base, get_db
 from proraf.config import settings
 
-# Database de teste em memória
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+# Database de teste - PostgreSQL
+SQLALCHEMY_DATABASE_URL = "postgresql://proraf:proraf@localhost:5432/proraf_test"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False}
+    pool_pre_ping=True,
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

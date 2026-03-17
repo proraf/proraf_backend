@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     debug: bool = False
     
     # Banco de dados
-    database_url: str = "sqlite:///./proraf.db"
+    database_url: str = "postgresql://proraf:proraf@localhost:5432/proraf_db"
     
     # Segurança
     secret_key: str = "your-secret-key-change-in-production"

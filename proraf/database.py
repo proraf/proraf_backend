@@ -4,8 +4,10 @@ from proraf.config import settings
 
 engine = create_engine(
     settings.database_url,
-    connect_args={"check_same_thread": False},  # Necessário para SQLite
-    echo=settings.debug
+    echo=settings.debug,
+    pool_size=5,
+    max_overflow=10,
+    pool_pre_ping=True,
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

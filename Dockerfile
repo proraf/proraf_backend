@@ -2,6 +2,11 @@ FROM python:3.11-slim as builder
 
 WORKDIR /app
 
+# Instala dependências de build para psycopg2
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev gcc \
+    && rm -rf /var/lib/apt/lists/*
+
 # Instala Poetry
 RUN pip install poetry
 
@@ -17,6 +22,11 @@ RUN poetry config virtualenvs.create false \
 FROM python:3.11-slim
 
 WORKDIR /app
+
+# Instala libpq para psycopg2 em runtime
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Cria usuário não-root
 RUN useradd -m -u 1000 proraf && \

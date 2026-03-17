@@ -1,6 +1,27 @@
 version: '3.8'
 
 services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: proraf-db
+    environment:
+      POSTGRES_USER: proraf
+      POSTGRES_PASSWORD: proraf
+      POSTGRES_DB: proraf_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - proraf-data:/var/lib/postgresql/data
+    networks:
+      - proraf-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U proraf -d proraf_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # Aplicação em desenvolvimento
   api-dev:
     build:
@@ -14,9 +35,12 @@ services:
       - /app/.venv
     environment:
       - DEBUG=True
-      - DATABASE_URL=sqlite:///./proraf.db
+      - DATABASE_URL=postgresql://proraf:proraf@db:5432/proraf_db
     env_file:
       - .env
+    depends_on:
+      db:
+        condition: service_healthy
     networks:
       - proraf-network
     profiles:
@@ -32,9 +56,12 @@ services:
       - "8000:8000"
     environment:
       - DEBUG=False
-      - DATABASE_URL=sqlite:///./proraf.db
+      - DATABASE_URL=postgresql://proraf:proraf@db:5432/proraf_db
     env_file:
       - .env.production
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - proraf-network
