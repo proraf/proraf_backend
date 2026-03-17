@@ -139,7 +139,7 @@ def test_print_simulation():
                 printer = ProductLabelPrinter(printer_name=printer_name)
             else:
                 print("Usando modo simulacao")
-        except:
+        except Exception:
             print("Usando modo simulacao (fallback)")
         
         produto_info = {

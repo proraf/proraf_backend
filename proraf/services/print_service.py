@@ -127,7 +127,7 @@ class ProductLabelPrinter:
         try:
             printer_handle = win32print.OpenPrinter(self.printer_name)
             job_info = ("Etiqueta Produto", None, "RAW")
-            job_id = win32print.StartDocPrinter(printer_handle, 1, job_info)
+            win32print.StartDocPrinter(printer_handle, 1, job_info)
             win32print.StartPagePrinter(printer_handle)
             win32print.WritePrinter(printer_handle, zpl_content.encode('utf-8'))
             win32print.EndPagePrinter(printer_handle)
