@@ -8,11 +8,11 @@ from fastapi.responses import JSONResponse
 from datetime import datetime
 from pathlib import Path
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
 from starlette.responses import RedirectResponse
 from proraf.config import settings
 from proraf.database import engine, Base
 from proraf.routers import auth, products, batches, movements, users, admin_dashboard, user_profile, traking, field_data, print_labels, whatsapp, public
+from proraf.routers import google_auth
 import logging
 
 logger = logging.getLogger(__name__)
@@ -114,7 +114,6 @@ app.include_router(field_data.router)
 app.include_router(print_labels.router)
 app.include_router(whatsapp.router)
 # Router Google OAuth
-from proraf.routers import google_auth
 app.include_router(google_auth.router)
 
 # Debug router temporário removido após correção
