@@ -1,6 +1,5 @@
 try:
     import win32print
-    import win32api
     WIN32_AVAILABLE = True
 except ImportError:
     WIN32_AVAILABLE = False

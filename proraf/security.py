@@ -107,7 +107,6 @@ def generate_whatsapp_hash(telefone: str) -> str:
     Returns:
         Hash hexadecimal para validação
     """
-    message = f"{telefone}:{settings.secret_key}"
     hash_object = hmac.new(
         settings.secret_key.encode('utf-8'),
         telefone.encode('utf-8'),
