@@ -45,11 +45,11 @@ async def get_dashboard_overview(
     
     # Estatísticas de produtos
     total_products = db.query(Product).count()
-    active_products = db.query(Product).filter(Product.status == True).count()
+    active_products = db.query(Product).filter(Product.status.is_(True)).count()
     
     # Estatísticas de lotes
     total_batches = db.query(Batch).count()
-    active_batches = db.query(Batch).filter(Batch.status == True).count()
+    active_batches = db.query(Batch).filter(Batch.status.is_(True)).count()
     
     # Estatísticas de movimentações
     total_movements = db.query(Movement).count()

@@ -173,7 +173,7 @@ async def get_user_stats(
     total_batches = db.query(Batch).filter(Batch.user_id == current_user.id).count()
     active_batches = db.query(Batch).filter(
         Batch.user_id == current_user.id,
-        Batch.status == True
+        Batch.status.is_(True)
     ).count()
     
     # Total de movimentações
@@ -194,11 +194,6 @@ async def get_user_stats(
         Movement.user_id == current_user.id
     ).group_by(Movement.tipo_movimentacao).all()
     
-    # Produtos únicos (através dos lotes)
-    unique_products = db.query(func.count(func.distinct(Batch.product_id))).filter(
-        Batch.user_id == current_user.id
-    ).scalar() or 0
-
     # Todos os produtos cadastrados do usuário
     total_products = db.query(Product).filter(
         Product.user_id == current_user.id
