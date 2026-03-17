@@ -42,14 +42,12 @@ jobs:
 
       - name: Setup environment variables
         run: cp .env.example .env
-
-      - name: Set env vars
-        run: |
-          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
-          echo "API_KEY=${{ secrets.API_KEY }}" >> .env
-          
+              
       - name: Run migrations
         run: poetry run task migrate
+        env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          API_KEY: ${{ secrets.API_KEY }}
 
       - name: Run linter
         run: poetry run task lint
