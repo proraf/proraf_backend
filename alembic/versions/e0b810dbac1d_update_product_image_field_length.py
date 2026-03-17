@@ -20,17 +20,16 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    # SQLite doesn't support ALTER COLUMN, so we'll do a table recreation approach
-    # But since this is just increasing the length of a VARCHAR field,
-    # and the field is nullable, we can skip the migration for SQLite
-    # as SQLite doesn't enforce VARCHAR length constraints strictly
-    
-    # For production with PostgreSQL/MySQL, use proper ALTER COLUMN
-    # For now, we'll just pass for SQLite compatibility
-    pass
+    # PostgreSQL suporta ALTER COLUMN - aumenta o tamanho do campo image
+    op.alter_column('products', 'image',
+                    existing_type=sa.String(255),
+                    type_=sa.String(500),
+                    existing_nullable=True)
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    # No action needed for SQLite as we didn't change the schema
-    pass
+    op.alter_column('products', 'image',
+                    existing_type=sa.String(500),
+                    type_=sa.String(255),
+                    existing_nullable=True)
