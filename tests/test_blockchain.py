@@ -711,15 +711,26 @@ class TestBlockchainValidation:
     
     def test_batch_blockchain_unauthorized(self, client, api_headers, db_session):
         """Testa PATCH sem autenticação (retorna 403 pois precisa de token JWT)"""
+        from proraf.models.user import User
         from proraf.models.product import Product
         from proraf.models.batch import Batch
-        
-        product = Product(name="Test", code="TST-001", user_id=1)
+        from proraf.security import get_password_hash
+
+        user = User(
+            nome="Test User", email="unauth@test.com",
+            senha=get_password_hash("testpass123"),
+            tipo_pessoa="F", cpf="00000000001", tipo_perfil="user"
+        )
+        db_session.add(user)
+        db_session.commit()
+        db_session.refresh(user)
+
+        product = Product(name="Test", code="TST-001", user_id=user.id)
         db_session.add(product)
         db_session.commit()
         db_session.refresh(product)
         
-        batch = Batch(code="LOTE-UNAUTH", product_id=product.id, user_id=1)
+        batch = Batch(code="LOTE-UNAUTH", product_id=product.id, user_id=user.id)
         db_session.add(batch)
         db_session.commit()
         db_session.refresh(batch)
@@ -735,16 +746,27 @@ class TestBlockchainValidation:
     
     def test_movement_blockchain_unauthorized(self, client, api_headers, db_session):
         """Testa PATCH de movimentação sem autenticação (retorna 403 pois precisa de token JWT)"""
+        from proraf.models.user import User
         from proraf.models.product import Product
         from proraf.models.batch import Batch
         from proraf.models.movement import Movement
-        
-        product = Product(name="Test", code="TST-002", user_id=1)
+        from proraf.security import get_password_hash
+
+        user = User(
+            nome="Test User", email="unauth2@test.com",
+            senha=get_password_hash("testpass123"),
+            tipo_pessoa="F", cpf="00000000002", tipo_perfil="user"
+        )
+        db_session.add(user)
+        db_session.commit()
+        db_session.refresh(user)
+
+        product = Product(name="Test", code="TST-002", user_id=user.id)
         db_session.add(product)
         db_session.commit()
         db_session.refresh(product)
         
-        batch = Batch(code="LOTE-UNAUTH-MOV", product_id=product.id, user_id=1)
+        batch = Batch(code="LOTE-UNAUTH-MOV", product_id=product.id, user_id=user.id)
         db_session.add(batch)
         db_session.commit()
         db_session.refresh(batch)
@@ -753,7 +775,7 @@ class TestBlockchainValidation:
             tipo_movimentacao="teste",
             quantidade=10,
             batch_id=batch.id,
-            user_id=1
+            user_id=user.id
         )
         db_session.add(movement)
         db_session.commit()
