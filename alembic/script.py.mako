@@ -20,9 +20,10 @@ depends_on: Union[str, Sequence[str], None] = ${repr(depends_on)}
 
 def upgrade() -> None:
     """Upgrade schema."""
-    ${upgrades if upgrades else "pass"}
-
+    with op.batch_alter_table("products") as batch_op:
+        batch_op.add_column(sa.Column("user_id", sa.Integer))
 
 def downgrade() -> None:
     """Downgrade schema."""
-    ${downgrades if downgrades else "pass"}
+    with op.batch_alter_table("products") as batch_op:
+        batch_op.drop_column("user_id")
