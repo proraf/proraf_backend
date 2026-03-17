@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from proraf.app import app
 from proraf.database import Base, get_db
@@ -19,7 +19,18 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 @pytest.fixture
 def db_session():
     """Cria sessão de banco de dados para testes"""
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+
+    # Reseta sequences para que IDs comecem em 1
+    with engine.connect() as conn:
+        for table in Base.metadata.sorted_tables:
+            for col in table.columns:
+                if col.primary_key and col.autoincrement:
+                    seq_name = f"{table.name}_{col.name}_seq"
+                    conn.execute(text(f"ALTER SEQUENCE IF EXISTS {seq_name} RESTART WITH 1"))
+        conn.commit()
+
     session = TestingSessionLocal()
     try:
         yield session

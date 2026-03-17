@@ -22,16 +22,20 @@ def upgrade() -> None:
     """Upgrade schema."""
     # Adiciona coluna user_id como nullable
     op.add_column('products', sa.Column('user_id', sa.Integer(), nullable=True))
-    
-    # Atualiza produtos existentes para ter user_id = 1
-    op.execute("UPDATE products SET user_id = 1 WHERE user_id IS NULL")
-    
+
+    # Atualiza produtos existentes apenas se existirem usuários
+    op.execute("""
+        UPDATE products SET user_id = (SELECT id FROM users LIMIT 1)
+        WHERE user_id IS NULL
+        AND EXISTS (SELECT 1 FROM users)
+    """)
+
     # PostgreSQL suporta ALTER COLUMN - altera image para VARCHAR(500)
     op.alter_column('products', 'image',
                     existing_type=sa.String(255),
                     type_=sa.String(500),
                     existing_nullable=True)
-    
+
     op.create_foreign_key('fk_products_user_id', 'products', 'users', ['user_id'], ['id'])
     # ### end Alembic commands ###
 
