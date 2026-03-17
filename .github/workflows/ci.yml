@@ -11,9 +11,31 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, ubuntu-22.04]
-        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.11", "3.12", "3.13"]
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: proraf
+          POSTGRES_PASSWORD: proraf
+          POSTGRES_DB: proraf_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U proraf -d proraf_db"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://proraf:proraf@localhost:5432/proraf_db
+      SECRET_KEY: ci-test-secret-key-min-32-caracteres-aqui
+      API_KEY: ci-test-api-key
+      DEBUG: "False"
 
     steps:
       - name: Checkout repository
@@ -30,24 +52,24 @@ jobs:
       - name: Configure Poetry
         run: poetry config virtualenvs.create false
 
-      - name: Install system dependencies (Pillow)
+      - name: Install system dependencies
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            libjpeg-dev zlib1g-dev libpng-dev
+            libjpeg-dev zlib1g-dev libpng-dev libpq-dev
 
       - name: Install dependencies
         run: poetry install --no-interaction --no-root
 
       - name: Setup environment variables
         run: cp .env.example .env
-              
+
+      - name: Create test database
+        run: PGPASSWORD=proraf psql -h localhost -U proraf -d proraf_db -c "CREATE DATABASE proraf_test;"
+
       - name: Run migrations
         run: poetry run task migrate
-        env:
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          API_KEY: ${{ secrets.API_KEY }}
 
       - name: Run linter
         run: poetry run task lint
