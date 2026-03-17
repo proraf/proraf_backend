@@ -30,6 +30,13 @@ jobs:
       - name: Configure Poetry
         run: poetry config virtualenvs.create false
 
+      - name: Install system dependencies (Pillow)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libjpeg-dev zlib1g-dev libpng-dev
+
       - name: Install dependencies
         run: poetry install --no-interaction --no-root
 
